@@ -29,74 +29,84 @@ export const useTransaction = (dependencies) => {
                 console.log(ready, pallet, module, args);
                 const transferExtrinsic = api.tx[pallet][module](...args);
                 console.log("start");
-                const unsub = await transferExtrinsic.signAndSend(
-                    account.address,
-                    { signer: injector.signer },
-                    (result, t) => {
-                        let blockHash;
-                        if (result.status.isFinalized || result.status.isInBlock) {
-                            if (result.status.isInBlock) {
-                                blockHash = result.status.asInBlock.toString();
-                            } else if (result.status.isFinalized) {
-                                blockHash = result.status.asFinalized.toString();
-                                unsub();
-                            }
-                            result.events
-                                .filter(({ event: { section } }) => section === "system")
-                                .forEach(({ event: { data, method } }) => {
-                                    if (method === "ExtrinsicFailed") {
-                                        const [dispatchError] = data;
-                                        if (dispatchError.isModule) {
-                                            try {
-                                                const mod = dispatchError.asModule;
-                                                const _mod = modules[mod.index.toNumber()];
-                                                const modName = _mod.name;
-                                                // why it can't get errors in metadata?
-                                                const errorName = _mod.errors[mod.error.toNumber()];
-                                                const error = `${modName}-${errorName}`;
+                try {
+                    const unsub = await transferExtrinsic.signAndSend(
+                        account.address,
+                        { signer: injector.signer },
+                        (result, t) => {
+                            let blockHash;
+                            if (result.status.isFinalized || result.status.isInBlock) {
+                                if (result.status.isInBlock) {
+                                    blockHash = result.status.asInBlock.toString();
+                                } else if (result.status.isFinalized) {
+                                    blockHash = result.status.asFinalized.toString();
+                                    unsub();
+                                }
+                                result.events
+                                    .filter(({ event: { section } }) => section === "system")
+                                    .forEach(({ event: { data, method } }) => {
+                                        if (method === "ExtrinsicFailed") {
+                                            const [dispatchError] = data;
+                                            if (dispatchError.isModule) {
+                                                try {
+                                                    const mod = dispatchError.asModule;
+                                                    const _mod = modules[mod.index.toNumber()];
+                                                    const modName = _mod.name;
+                                                    // why it can't get errors in metadata?
+                                                    const errorName = _mod.errors[mod.error.toNumber()];
+                                                    const error = `${modName}-${errorName}`;
 
-                                                toast({
-                                                    title: error,
-                                                    description: `error in ${blockHash}`,
-                                                    status: "error",
-                                                    duration: 9000,
-                                                    isClosable: true,
-                                                });
-                                                resolve({ hash: blockHash, success: false })
-                                            } catch (error) {
-                                                toast({
-                                                    title: error.name,
-                                                    description: `error in ${blockHash}`,
-                                                    status: "error",
-                                                    duration: 9000,
-                                                    isClosable: true,
-                                                });
-                                                resolve({ hash: blockHash, success: false })
+                                                    toast({
+                                                        title: error,
+                                                        description: `error in ${blockHash}`,
+                                                        status: "error",
+                                                        duration: 9000,
+                                                        isClosable: true,
+                                                    });
+                                                    resolve({ hash: blockHash, success: false })
+                                                } catch (error) {
+                                                    toast({
+                                                        title: error.name,
+                                                        description: `error in ${blockHash}`,
+                                                        status: "error",
+                                                        duration: 9000,
+                                                        isClosable: true,
+                                                    });
+                                                    resolve({ hash: blockHash, success: false })
 
+                                                }
                                             }
+                                        } else if (method === "ExtrinsicSuccess") {
+                                            console.log("success!!");
+                                            toast({
+                                                description: `success in ${blockHash}`,
+                                                status: "success",
+                                                duration: 9000,
+                                                isClosable: true,
+                                            });
+                                            resolve({ hash: blockHash, success: true })
                                         }
-                                    } else if (method === "ExtrinsicSuccess") {
-                                        console.log("success!!");
-                                        toast({
-                                            description: `success in ${blockHash}`,
-                                            status: "success",
-                                            duration: 9000,
-                                            isClosable: true,
-                                        });
-                                        resolve({ hash: blockHash, success: true })
-                                    }
+                                    });
+                            } else if (result.isError) {
+                                toast({
+                                    description: `something is wrong`,
+                                    status: "error",
+                                    duration: 9000,
+                                    isClosable: true,
                                 });
-                        } else if (result.isError) {
-                            toast({
-                                description: `something is wrong`,
-                                status: "error",
-                                duration: 9000,
-                                isClosable: true,
-                            });
-                            resolve({ hash: '', success: false })
+                                resolve({ hash: '', success: false })
+                            }
                         }
-                    }
-                );
+                    );
+                } catch (error) {
+                    // console.log("error:", error)
+                    toast({
+                        description: error.toString(),
+                        status: "error",
+                        duration: 9000,
+                        isClosable: true,
+                    });
+                }
             } else {
                 toast({
                     description: `api not ready`,

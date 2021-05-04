@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, forwardRef } from "react";
 import {
   Container,
   FormControl,
@@ -23,7 +23,7 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   useToast,
-  Spinner
+  Spinner,
 } from "@chakra-ui/react";
 
 import { useForm, FormProvider } from "react-hook-form";
@@ -38,7 +38,7 @@ import {
   QueryClientProvider,
 } from "react-query";
 
-import ReactSelect from 'react-select';
+import ReactSelect from "react-select";
 
 import { request, gql } from "graphql-request";
 
@@ -46,18 +46,19 @@ import Upload from "../components/Upload";
 import ipfs from "../utils/ipfs";
 import { useTransaction } from "../utils/transaction";
 import { useApi } from "../utils/api";
-import { getEvents } from '../utils/getEvents'
+import { getEvents } from "../utils/getEvents";
 
 // const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-const endpoint = "http://localhost:3000/"
+const endpoint = "http://localhost:3000/";
 // const endpoint = "https://graphqlzero.almansi.me/api";
 
 const queryClient = new QueryClient();
 
-
 function useCollections() {
   return useQuery("collections", async () => {
-    const { collections: { nodes } } = await request(
+    const {
+      collections: { nodes },
+    } = await request(
       endpoint,
       gql`
         query {
@@ -69,13 +70,12 @@ function useCollections() {
         }
       `
     );
-    const data = nodes.map(collection => {
-      return { label: collection.id, value: collection.id }
-    })
-    console.log(nodes)
+    const data = nodes.map((collection) => {
+      return { label: collection.id, value: collection.id };
+    });
+    console.log(nodes);
     return data;
   });
-
 }
 
 function CreateCollection({ isOpen, onOpen, onClose }) {
@@ -102,27 +102,31 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const { mutate } = useMutation(newData => { console.log("new data:", newData) }, {
-    // When mutate is called:
-    onMutate: async newCollection => {
-      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-      await qc.cancelQueries('collections')
-
-      // Snapshot the previous value
-      const previousCollections = qc.getQueryData('collections')
-      console.log("previousCollections", previousCollections)
-
-      // Optimistically update to the new value
-      qc.setQueryData('collections', old => {
-        return [...old, newCollection]
-      })
-
-      console.log(qc.getQueryData('collections'))
-      // Return a context object with the snapshotted value
-      return { previousCollections }
+  const { mutate } = useMutation(
+    (newData) => {
+      console.log("new data:", newData);
     },
+    {
+      // When mutate is called:
+      onMutate: async (newCollection) => {
+        // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+        await qc.cancelQueries("collections");
 
-  })
+        // Snapshot the previous value
+        const previousCollections = qc.getQueryData("collections");
+        console.log("previousCollections", previousCollections);
+
+        // Optimistically update to the new value
+        qc.setQueryData("collections", (old) => {
+          return [...old, newCollection];
+        });
+
+        console.log(qc.getQueryData("collections"));
+        // Return a context object with the snapshotted value
+        return { previousCollections };
+      },
+    }
+  );
 
   const onSubmit = async (values) => {
     // return console.log(typeof newTransaction);
@@ -134,7 +138,7 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
     // console.log(values);
     const blobUrl = values.file[0].preview;
     console.log(blobUrl);
-    console.log("in transaction", accounts)
+    console.log("in transaction", accounts);
     if (!(accounts && accounts.length > 0)) {
       return toast({
         title: "Error",
@@ -160,7 +164,7 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
       console.log("ipfs:", fileInfo);
 
       const metadata = {
-        minter: accounts[0].address,
+        creator: accounts[0].address,
         name: values.name,
         description: values.description,
         asset: fileCID,
@@ -179,23 +183,22 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
 
       const metadataCIDHash = stringToHex(metadataCID);
 
-      const state = queryClient.getQueryState("collections")
-      console.log("state", state)
+      const state = queryClient.getQueryState("collections");
+      console.log("state", state);
 
-
-      const result = await newTransaction("collectionModule", "createCollection", [
-        metadataCIDHash,
-        false,
-      ]);
+      const result = await newTransaction(
+        "collectionModule",
+        "createCollection",
+        [metadataCIDHash, false]
+      );
 
       if (result && result.success) {
-        console.log("tx result", result)
-        const events = await getEvents(api, result.hash, "collectionModule")
-        const newData = { label: events[0].data[1], value: events[0].data[1] }
-        console.log(newData)
-        mutate({ newData })
+        console.log("tx result", result);
+        const events = await getEvents(api, result.hash, "collectionModule");
+        const newData = { label: events[0].data[1], value: events[0].data[1] };
+        console.log(newData);
+        mutate({ newData });
       }
-
 
       console.log(metadataCID);
     } catch (error) {
@@ -214,7 +217,6 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <FormProvider {...methods}>
-
           <form onSubmit={handleSubmit(onSubmit)}>
             <ModalContent>
               <ModalHeader>Create collection</ModalHeader>
@@ -222,10 +224,7 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
               <ModalBody pb={6}>
                 <FormControl isInvalid={errors.name}>
                   <FormLabel htmlFor="name">Name</FormLabel>
-                  <Input
-                    placeholder="Collection name"
-                    {...register("name")}
-                  />
+                  <Input placeholder="Collection name" {...register("name")} />
                   <FormErrorMessage>
                     {errors.name && "Name is required"}
                   </FormErrorMessage>
@@ -261,8 +260,6 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
                 >
                   Create
                 </Button>
-                <Button onClick={() => test()}>qaq</Button>
-
                 <Button onClick={onClose}>Cancel</Button>
               </ModalFooter>
             </ModalContent>
@@ -273,37 +270,48 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
   );
 }
 
-
-
-function Collections() {
-  const qc = useQueryClient();
-  // const [status, setStatus] = useState();
-  // const [data, setData] = useState();
-  // const [error, setError] = useState();
-
+const Collections = forwardRef(({ onChange, onBlur, name }, ref) => {
   const { status, data, error } = useCollections();
 
-  const test = () => console.log("emmm", qc, qc.getQueryData('collections'))
-
   return (
-    <div>
+    <>
       {status === "loading" ? (
-        <Spinner />
+        <>
+          <Select
+            display="none"
+            name={name}
+            ref={ref}
+            onChange={onChange}
+            onBlur={onBlur}
+          ></Select>
+          <Spinner />
+        </>
       ) : status === "error" ? (
-        // <span>Error: {error.message}</span>
-        <Select placeholder={`Error: ${error.message}`}>
-        </Select>
+        <Select
+          placeholder={`Error: ${error.message}`}
+          name={name}
+          ref={ref}
+          onChange={onChange}
+          onBlur={onBlur}
+        ></Select>
       ) : (
-        <Select placeholder="Select collection">
-          {data.map((collection, index) => (<option key={index} value={collection.value}>{collection.value}</option>))}
+        <Select
+          placeholder="Select collection"
+          name={name}
+          ref={ref}
+          onChange={onChange}
+          onBlur={onBlur}
+        >
+          {data.map((collection, index) => (
+            <option key={index} value={collection.value}>
+              {collection.value}
+            </option>
+          ))}
         </Select>
-      )
-      }
-      <Button onClick={() => test()}>qaq</Button>
-
-    </div>
-  )
-}
+      )}
+    </>
+  );
+});
 
 export default function Create() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -312,17 +320,99 @@ export default function Create() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = methods;
 
-  function onSubmit(values) {
-    return new Promise((resolve) => {
-      console.log("e", errors);
+  console.log("select collection:", watch("collection"));
+  console.log("amount:", watch("amount"));
+  console.log("file:", watch("file"));
 
-      console.log(JSON.stringify(values, null, 2));
-      resolve();
-    });
-  }
+  const { api, accounts, modules, ready } = useApi();
+  const toast = useToast();
+
+  const newTransaction = useTransaction({
+    api,
+    accounts,
+    ready,
+    modules,
+    toast,
+  });
+
+  const onSubmit = async (values) => {
+    console.log("values", values);
+    if (!(accounts && accounts.length > 0)) {
+      return toast({
+        title: "Error",
+        description: "There is no account in wallet",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+    }
+
+    const blobUrl = values.file[0].preview;
+
+    try {
+      console.log("Qaq");
+      toast({
+        // title: "Info",
+        description: "uploading image",
+        status: "info",
+        duration: 9000,
+        isClosable: true,
+      });
+      const fileInfo = await ipfs.add(urlSource(blobUrl));
+      const fileCID = fileInfo.cid.toString();
+
+      console.log("ipfs:", fileInfo);
+
+      const metadata = {
+        minter: accounts[0].address,
+        name: values.name,
+        description: values.description,
+        asset: fileCID,
+      };
+
+      toast({
+        // title: "Info",
+        description: "uploading metadata",
+        status: "info",
+        duration: 9000,
+        isClosable: true,
+      });
+
+      const metadataInfo = await ipfs.add(JSON.stringify(metadata));
+      const metadataCID = metadataInfo.cid.toString();
+
+      const metadataCIDHash = stringToHex(metadataCID);
+
+      console.log("metadataCIDHash", metadataCIDHash);
+
+      console.log(metadataCID);
+
+      await newTransaction("nftModule", "mintNonFungible", [
+        accounts[0].address,
+        values.collection,
+        metadataCIDHash,
+        values.amount,
+      ]);
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+      console.log(error);
+    }
+    // return new Promise((resolve) => {
+    //   console.log("e", errors);
+
+    //   console.log(JSON.stringify(values, null, 2));
+    //   resolve();
+    // });
+  };
 
   useEffect(() => {
     console.log("e", errors);
@@ -331,12 +421,11 @@ export default function Create() {
   return (
     <Container py={12}>
       <QueryClientProvider client={queryClient}>
-
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={4}>
               <FormControl isInvalid={errors.file}>
-                <FormLabel htmlFor="file">Upload</FormLabel>
+                <FormLabel htmlFor="file">Upload cover</FormLabel>
                 <Upload label="file" />
                 <FormErrorMessage>
                   {errors.file && "File is required"}
@@ -358,19 +447,27 @@ export default function Create() {
                 <FormLabel htmlFor="description">Description</FormLabel>
                 <Input name="description" placeholder="description" />
               </FormControl>
-              <FormControl>
+              <FormControl isInvalid={errors.amount}>
                 <FormLabel>Number of items</FormLabel>
                 <NumberInput defaultValue={1} min={1}>
-                  <NumberInputField />
+                  <NumberInputField
+                    {...register("amount", { required: true })}
+                  />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
                     <NumberDecrementStepper />
                   </NumberInputStepper>
                 </NumberInput>
+                <FormErrorMessage>
+                  {errors.amount && "amount is required"}
+                </FormErrorMessage>
               </FormControl>
-              <FormControl>
+              <FormControl isInvalid={errors.collection}>
                 <FormLabel htmlFor="collection">Collection</FormLabel>
-                <Collections />
+                <Collections {...register("collection", { required: true })} />
+                <FormErrorMessage>
+                  {errors.collection && "Collection is required"}
+                </FormErrorMessage>
                 <FormHelperText
                   textDecoration="underline"
                   color={"gray.900"}
@@ -380,7 +477,7 @@ export default function Create() {
                   }}
                 >
                   Have no collection? Click here to create
-              </FormHelperText>
+                </FormHelperText>
               </FormControl>
               <Button
                 size="md"
@@ -392,7 +489,7 @@ export default function Create() {
                 type="submit"
               >
                 Mint
-            </Button>
+              </Button>
             </Stack>
           </form>
         </FormProvider>
