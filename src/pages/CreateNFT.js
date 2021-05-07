@@ -49,33 +49,48 @@ import { useApi } from "../utils/api";
 import { getEvents } from "../utils/getEvents";
 
 // const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-const endpoint = "http://localhost:3000/";
+const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 // const endpoint = "https://graphqlzero.almansi.me/api";
 
 const queryClient = new QueryClient();
 
-function useCollections() {
-  return useQuery("collections", async () => {
-    const {
-      collections: { nodes },
-    } = await request(
-      endpoint,
-      gql`
-        query {
-          collections {
-            nodes {
-              id
+function useCollections(accounts) {
+  const address = accounts && accounts.length > 0 ? accounts[0].address : null;
+
+  return useQuery(
+    "collections",
+    async () => {
+      const {
+        collections: { nodes },
+      } = await request(
+        endpoint,
+        gql`
+          query {
+            collections(
+              filter: {
+                owner: {
+                  equalTo: "${address}"
+                }
+              }
+            ) {
+              nodes {
+                id
+              }
             }
           }
-        }
       `
-    );
-    const data = nodes.map((collection) => {
-      return { label: collection.id, value: collection.id };
-    });
-    console.log(nodes);
-    return data;
-  });
+      );
+      const data = nodes.map((collection) => {
+        return { label: collection.id, value: collection.id };
+      });
+      console.log(nodes);
+      return data;
+    },
+    {
+      // enabled: enable,
+      enabled: !!address,
+    }
+  );
 }
 
 function CreateCollection({ isOpen, onOpen, onClose }) {
@@ -163,7 +178,15 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
 
       console.log("ipfs:", fileInfo);
 
-      const metadata = {
+      let metadata = {
+        creator: "",
+        name: "",
+        description: "",
+        asset: "",
+      };
+
+      metadata = {
+        ...metadata,
         creator: accounts[0].address,
         name: values.name,
         description: values.description,
@@ -270,12 +293,12 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
   );
 }
 
-const Collections = forwardRef(({ onChange, onBlur, name }, ref) => {
-  const { status, data, error } = useCollections();
+const Collections = forwardRef(({ onChange, onBlur, name, accounts }, ref) => {
+  const { status, data, error } = useCollections(accounts);
 
   return (
     <>
-      {status === "loading" ? (
+      {status === "loading" || status === "idle" ? (
         <>
           <Select
             display="none"
@@ -331,6 +354,12 @@ export default function Create() {
   const { api, accounts, modules, ready } = useApi();
   const toast = useToast();
 
+  // const [address, setAddress] = useState("")
+
+  // useEffect(() => {
+  //   // console.log("qaq", accounts)
+  //   setAddress(accounts[0].address)
+  // }, [accounts])
   const newTransaction = useTransaction({
     api,
     accounts,
@@ -367,7 +396,15 @@ export default function Create() {
 
       console.log("ipfs:", fileInfo);
 
-      const metadata = {
+      let metadata = {
+        minter: "",
+        name: "",
+        describe: "",
+        asset: "",
+      };
+
+      metadata = {
+        ...metadata,
         minter: accounts[0].address,
         name: values.name,
         description: values.description,
@@ -445,7 +482,11 @@ export default function Create() {
 
               <FormControl>
                 <FormLabel htmlFor="description">Description</FormLabel>
-                <Input name="description" placeholder="description" />
+                <Input
+                  name="description"
+                  placeholder="description"
+                  {...register("description")}
+                />
               </FormControl>
               <FormControl isInvalid={errors.amount}>
                 <FormLabel>Number of items</FormLabel>
@@ -464,7 +505,10 @@ export default function Create() {
               </FormControl>
               <FormControl isInvalid={errors.collection}>
                 <FormLabel htmlFor="collection">Collection</FormLabel>
-                <Collections {...register("collection", { required: true })} />
+                <Collections
+                  accounts={accounts}
+                  {...register("collection", { required: true })}
+                />
                 <FormErrorMessage>
                   {errors.collection && "Collection is required"}
                 </FormErrorMessage>

@@ -3,7 +3,9 @@ import { stringToHex } from "@polkadot/util";
 
 import { useApi } from "../utils/api";
 import { useTransaction } from "../utils/transaction";
-import TokenCard from "../components/TokenCard";
+// import TokenCard from "../components/TokenCard";
+import  {  TokenCard } from "../components/TokenCard";
+
 
 function Home() {
   const toast = useToast();
