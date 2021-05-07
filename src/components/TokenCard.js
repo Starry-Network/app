@@ -18,8 +18,7 @@ export function TokenCard({
   url = "https://lh3.googleusercontent.com/1_I7m72fLjas0kXfjYQ8p44gUhi5yMNYgi67t6gGu8ZCM5Z0zcwUAoRNYTlCnwgc1dDGeX4lnzgTfKfNTyJMtcI7trmA8TL32ked=s250",
   price = "0.002",
   symbol = "DOT",
-  leftToken = "2",
-  totalToken = "10",
+  amount = "2",
   disableLink = false,
   onClick = () => { },
 }) {
@@ -60,7 +59,7 @@ export function TokenCard({
             maxW="240px"
             isTruncated
           >
-            {leftToken} of {totalToken}
+            {amount} copies
           </Text>
         </Stack>
       </LinkBox>

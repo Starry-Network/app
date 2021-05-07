@@ -11,9 +11,6 @@ import {
   TabPanel,
   SimpleGrid,
   Spinner,
-  Skeleton,
-  SkeletonCircle,
-  SkeletonText,
 } from "@chakra-ui/react";
 import {
   useQuery,
@@ -80,9 +77,14 @@ function useNFTMetadatas(data) {
         return {
           queryKey: ["nft", nft.id],
           queryFn: () =>
-            fetch(`https://gateway.ipfs.io/ipfs/${nft.uri}`).then((res) =>
-              res.json()
-            ),
+            fetch(`https://gateway.ipfs.io/ipfs/${nft.uri}`)
+              .then((res) => res.json())
+              .then((metadata) => {
+                return {
+                  nftData: nft,
+                  metadata,
+                };
+              }),
         };
       },
       {
@@ -92,13 +94,12 @@ function useNFTMetadatas(data) {
   );
 }
 
-
 const Tokens = ({ accounts }) => {
   const { status, data, error } = useNFTs(accounts);
 
   const nfts = useNFTMetadatas(data);
 
-  console.log(nfts)
+  console.log(nfts);
   return (
     <>
       {status === "loading" || status === "idle" ? (
@@ -117,8 +118,8 @@ const Tokens = ({ accounts }) => {
                 ) : (
                   <>
                     <TokenCard
-                      url={`https://gateway.ipfs.io/ipfs/${nft.data.asset}`}
-                      title={nft.data.name}
+                      url={`https://gateway.ipfs.io/ipfs/${nft.data.metadata.asset}`}
+                      title={nft.data.metadata.name}
                       disableLink={true}
                       onClick={(e) => {
                         e.persist();
@@ -164,34 +165,9 @@ export default function Profile() {
             <Tab>Collectoins</Tab>
           </TabList>
           <TabPanels>
-            {/* initially mounted */}
             <TabPanel>
               <Tokens accounts={accounts} />
-              {/* <p>one!</p> */}
-              {/* <SimpleGrid minChildWidth="280px">
-                <TokenCard
-                  disableLink={true}
-                  onClick={(e) => {
-                    e.persist();
-                    e.nativeEvent.stopImmediatePropagation();
-                    e.stopPropagation();
-                    alert("qaq");
-                    console.log("qaq");
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                  }}
-                />
-                <TokenCard url="https://ipfs.rarible.com/ipfs/QmP4rvmwRcx7mUKAKhtLgfjNi11F5kEQAXxB3CFZp6Kz3c/image.jpeg" />
-                <TokenCard url="https://lh3.googleusercontent.com/NNf1COFJ0u8WNyteepk192LxFe-HwFThj5j4dP4whcyUixB2ItuD1cTt5NBOnGjHTZc0JmmjVI47sH79elDI-kex=s250" />
-                <TokenCard url="https://lh3.googleusercontent.com/NNf1COFJ0u8WNyteepk192LxFe-HwFThj5j4dP4whcyUixB2ItuD1cTt5NBOnGjHTZc0JmmjVI47sH79elDI-kex=s250" />
-                <TokenCard url="https://lh3.googleusercontent.com/NNf1COFJ0u8WNyteepk192LxFe-HwFThj5j4dP4whcyUixB2ItuD1cTt5NBOnGjHTZc0JmmjVI47sH79elDI-kex=s250" />
-                <TokenCard url="https://images.unsplash.com/photo-1518051870910-a46e30d9db16?ixlib=rb-1.2.1&ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&auto=format&fit=crop&w=1350&q=80" />
-                <TokenCard url="https://lh3.googleusercontent.com/NNf1COFJ0u8WNyteepk192LxFe-HwFThj5j4dP4whcyUixB2ItuD1cTt5NBOnGjHTZc0JmmjVI47sH79elDI-kex=s250" />
-                <TokenCard url="https://d7hftxdivxxvm.cloudfront.net?resize_to=fit&src=http%3A%2F%2Ffiles.artsy.net%2Fimages%2Fthumbnails%2Fpost-war.png&width=357&height=175&quality=80" />{" "}
-              </SimpleGrid> */}
             </TabPanel>
-            {/* initially not mounted */}
             <TabPanel>
               <p>two!</p>
             </TabPanel>
