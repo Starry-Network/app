@@ -24,7 +24,7 @@ function App() {
           <Route exact path="/createNFT">
             <CreateNFT />
           </Route>
-          <Route exact path="/NFTDetail">
+          <Route exact path="/NFTDetail/:nftId/:orderId">
             <NFTDetail />
           </Route>
           <Route exact path="/graphNFT">

@@ -1,4 +1,4 @@
-import {Fragment} from 'react'
+import { Fragment } from "react";
 import { useToast, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
 import { stringToHex } from "@polkadot/util";
 
@@ -69,9 +69,6 @@ function useOrdersWithNFTs(data) {
                     id
                     owner
                     uri
-                    endIdx
-                    isSub
-                    locked
                   }
                 }
               `
@@ -124,6 +121,8 @@ const Cards = ({ accounts }) => {
                       title={data.metadata.name}
                       amount={data.order.amount}
                       price={data.order.price}
+                      href={`/NFTDetail/${data.order.nftId}/${data.order.id}`}
+                      // href={`/NFTDetail/${data.order.nftId}/null`}
                     />
                   </>
                 )}

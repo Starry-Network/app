@@ -22,6 +22,7 @@ export function TokenCard({
   disableLink = false,
   onClick = () => { },
 }) {
+  
   return (
     <Center py={5} onClick={onClick}>
       <LinkBox
