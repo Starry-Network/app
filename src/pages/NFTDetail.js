@@ -19,6 +19,25 @@ import {
   SkeletonCircle,
   SkeletonText,
   Spinner,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  FormHelperText,
+  Input,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 
 import { useParams } from "react-router-dom";
@@ -32,6 +51,10 @@ import {
   QueryClientProvider,
 } from "react-query";
 import { request, gql } from "graphql-request";
+import { useForm, FormProvider } from "react-hook-form";
+
+import { useApi } from "../utils/api";
+import { useTransaction } from "../utils/transaction";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
@@ -92,6 +115,106 @@ function useNFTMetadata(nftId) {
   );
 }
 
+const BuyModal = ({ name, isOpen, onClose, orderId }) => {
+  const methods = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = methods;
+
+  const { api, accounts, modules, ready } = useApi();
+
+  const toast = useToast();
+
+  const newTransaction = useTransaction({
+    api,
+    accounts,
+    ready,
+    modules,
+    toast,
+  });
+
+  const buy = async (orderId, amount) => {
+    if (!(accounts && accounts.length > 0)) {
+      return toast({
+        title: "Error",
+        description: "There is no account in wallet",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+    }
+    try {
+      await newTransaction("exchangeModule", "buyNft", [orderId, amount]);
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+      console.log(error);
+    }
+  };
+
+  const onSubmit = async (values) => {
+    console.log(values)
+    await buy(orderId, values.amount);
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <ModalContent>
+            <ModalHeader>Buy {`${name}`}</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              {/* <Lorem count={2} /> */}
+              {/* form */}
+              <FormControl isInvalid={errors.amount}>
+                <FormLabel>Buy amount</FormLabel>
+                <NumberInput defaultValue={1} min={1}>
+                  <NumberInputField
+                    {...register("amount", { required: true })}
+                  />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+                <FormErrorMessage>
+                  {errors.amount && "amount is required"}
+                </FormErrorMessage>
+              </FormControl>
+            </ModalBody>
+
+            <ModalFooter>
+              <ModalFooter>
+                <Button
+                  mr={3}
+                  bg="gray.900"
+                  color="white"
+                  _hover={{
+                    bg: "purple.550",
+                  }}
+                  type="submit"
+                  isLoading={isSubmitting}
+                >
+                  Buy Now!
+                </Button>
+                <Button onClick={onClose}>Cancel</Button>
+              </ModalFooter>
+            </ModalFooter>
+          </ModalContent>
+        </form>
+      </FormProvider>
+    </Modal>
+  );
+};
+
 const Detail = ({ nftId, orderId = "null" }) => {
   const {
     status: NFTMetadataStatus,
@@ -101,12 +224,9 @@ const Detail = ({ nftId, orderId = "null" }) => {
   const { status: orderStatus, data: orderData, error: orderError } = useOrder(
     orderId === "null" ? undefined : orderId
   );
-  console.log(
-    NFTMetadataStatus,
-    NFTMetadataData,
-    NFTMetadataError,
-    orderStatus
-  );
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   return (
     <Container maxW={"9xl"} py={12}>
       <Grid
@@ -226,6 +346,7 @@ const Detail = ({ nftId, orderId = "null" }) => {
                   {orderId === "null" ? null : (
                     <Button
                       isLoading={!(orderStatus === "success")}
+                      disabled={!(orderStatus === "success")}
                       w={"full"}
                       size="lg"
                       borderRadius={"none"}
@@ -236,10 +357,13 @@ const Detail = ({ nftId, orderId = "null" }) => {
                         bg: "purple.550",
                         borderColor: "gray.900",
                       }}
+                      onClick={onOpen}
+                      // onClick={async () => {await buy(orderId, )} }
                     >
                       BUY
                     </Button>
                   )}
+                  <BuyModal isOpen={isOpen} onClose={onClose} orderId={orderId} name={NFTMetadataData.metadata.name}/>
                 </Box>
               </Stack>
             </Box>

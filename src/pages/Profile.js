@@ -1,3 +1,4 @@
+import {Fragment} from 'react'
 import {
   Flex,
   Container,
@@ -108,9 +109,9 @@ const Tokens = ({ accounts }) => {
         <Text>{`Error: ${error.message}`}</Text>
       ) : (
         <SimpleGrid minChildWidth="280px">
-          {nfts.map((nft) => {
+          {nfts.map((nft, index) => {
             return (
-              <>
+              <Fragment key={index}>
                 {nft.isIdle || nft.isLoading ? (
                   <>
                     <SkeletonCard />
@@ -122,19 +123,12 @@ const Tokens = ({ accounts }) => {
                       title={nft.data.metadata.name}
                       disableLink={true}
                       onClick={(e) => {
-                        e.persist();
-                        e.nativeEvent.stopImmediatePropagation();
-                        e.stopPropagation();
-                        alert("qaq");
-                        console.log("qaq");
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
+                        console.log("qaq")
                       }}
                     />
                   </>
                 )}
-              </>
+              </Fragment>
             );
           })}
         </SimpleGrid>
