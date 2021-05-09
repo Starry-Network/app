@@ -33,12 +33,15 @@ const queryClient = new QueryClient();
 
 export default function SplitNFT() {
   const { api, accounts, modules, ready } = useApi();
+  
   const methods = useForm();
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = methods;
+
   const toast = useToast();
   const newTransaction = useTransaction({
     api,

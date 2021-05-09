@@ -39,6 +39,7 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   Switch,
+  useToast,
 } from "@chakra-ui/react";
 import {
   useQuery,
@@ -54,6 +55,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { SkeletonCard, TokenCard } from "../components/TokenCard";
 
 import { useApi } from "../hooks/api";
+import { useTransaction } from "../hooks/transaction";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
@@ -122,7 +124,7 @@ function useNFTMetadatas(data) {
   );
 }
 
-const Tokens = ({ accounts }) => {
+const Tokens = ({ accounts, setNFTMetada, openActionModal }) => {
   const { status, data, error } = useNFTs(accounts);
 
   const nfts = useNFTMetadatas(data);
@@ -150,7 +152,15 @@ const Tokens = ({ accounts }) => {
                       title={nft.data.metadata.name}
                       disableLink={true}
                       onClick={(e) => {
-                        console.log("qaq");
+                        // console.log("qaq");
+                        const token = nft.data.nftData.id.split("-");
+                        setNFTMetada({
+                          collectionId: token[0],
+                          startIdx: token[1],
+                          name: nft.data.metadata.name,
+                          uri: nft.data.metadata.asset,
+                        });
+                        openActionModal();
                       }}
                     />
                   </>
@@ -164,7 +174,18 @@ const Tokens = ({ accounts }) => {
   );
 };
 
-const BurnNFT = ({ showPrice }) => {
+const BurnNFT = ({ showPrice, collectionId, startIdx }) => {
+  const { api, accounts, modules, ready } = useApi();
+
+  const toast = useToast();
+  const newTransaction = useTransaction({
+    api,
+    accounts,
+    ready,
+    modules,
+    toast,
+  });
+
   const methods = useForm();
   const {
     register,
@@ -174,8 +195,34 @@ const BurnNFT = ({ showPrice }) => {
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = methods;
 
-  const onSubmit = (values) => {
+  const onSubmit = async (values) => {
     console.log(values);
+    if (!(accounts && accounts.length > 0)) {
+      return toast({
+        title: "Error",
+        description: "There is no account in wallet",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+    }
+
+    try {
+      await newTransaction("nftModule", "burnNonFungible", [
+        collectionId,
+        startIdx,
+        values.amount,
+      ]);
+      showPrice();
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+      console.log(error);
+    }
   };
 
   return (
@@ -231,7 +278,9 @@ const BurnNFT = ({ showPrice }) => {
   );
 };
 
-const TransferNFT = ({ showPrice }) => {
+const TransferNFT = ({ showPrice, collectionId, startIdx }) => {
+  const { api, accounts, modules, ready } = useApi();
+
   const methods = useForm();
   const {
     register,
@@ -241,8 +290,44 @@ const TransferNFT = ({ showPrice }) => {
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = methods;
 
-  const onSubmit = (values) => {
+  const toast = useToast();
+  const newTransaction = useTransaction({
+    api,
+    accounts,
+    ready,
+    modules,
+    toast,
+  });
+
+  const onSubmit = async (values) => {
     console.log(values);
+    if (!(accounts && accounts.length > 0)) {
+      return toast({
+        title: "Error",
+        description: "There is no account in wallet",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+    }
+
+    try {
+      await newTransaction("nftModule", "transferNonFungible", [
+        values.receriver,
+        collectionId,
+        startIdx,
+        values.amount,
+      ]);
+      showPrice();
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+      console.log(error);
+    }
   };
 
   return (
@@ -308,7 +393,9 @@ const TransferNFT = ({ showPrice }) => {
   );
 };
 
-const SetPrice = () => {
+const SetPrice = ({ collectionId, startIdx }) => {
+  const { api, accounts, modules, ready } = useApi();
+
   const [showSetPrice, setShowSetPrice] = useState(false);
   const methods = useForm();
   const {
@@ -319,8 +406,42 @@ const SetPrice = () => {
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = methods;
 
-  const onSubmit = (values) => {
-    console.log(values);
+  const toast = useToast();
+  const newTransaction = useTransaction({
+    api,
+    accounts,
+    ready,
+    modules,
+    toast,
+  });
+
+  const onSubmit = async (values) => {
+    if (!(accounts && accounts.length > 0)) {
+      return toast({
+        title: "Error",
+        description: "There is no account in wallet",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+    }
+
+    try {
+      await newTransaction("exchangeModule", "sellNft", [
+        collectionId,
+        startIdx,
+        values.amount,
+        values.price,
+      ]);
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+      console.log(error);
+    }
   };
   return (
     <>
@@ -384,9 +505,14 @@ const SetPrice = () => {
   );
 };
 
-const ActionModal = ({ isOpen, onClose }) => {
-  // const [showTransfer, setShowTransfer] = useState(false);
-  // const [showBurn, setShowBurn] = useState(false);
+const ActionModal = ({
+  isOpen,
+  onClose,
+  collectionId,
+  startIdx,
+  name,
+  uri,
+}) => {
   const [showComponent, setShowComponent] = useState("price");
 
   const showTransfer = () => setShowComponent("transfer");
@@ -397,7 +523,7 @@ const ActionModal = ({ isOpen, onClose }) => {
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>NFT Title</ModalHeader>
+        <ModalHeader>{name}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <Center>
@@ -405,9 +531,7 @@ const ActionModal = ({ isOpen, onClose }) => {
               rounded={"lg"}
               boxSize="160px"
               objectFit="contain"
-              src={
-                "https://lh3.googleusercontent.com/1_I7m72fLjas0kXfjYQ8p44gUhi5yMNYgi67t6gGu8ZCM5Z0zcwUAoRNYTlCnwgc1dDGeX4lnzgTfKfNTyJMtcI7trmA8TL32ked=s250"
-              }
+              src={`https://gateway.ipfs.io/ipfs/${uri}`}
             />
           </Center>
           {showComponent === "price" ? (
@@ -443,40 +567,30 @@ const ActionModal = ({ isOpen, onClose }) => {
           {(() => {
             switch (showComponent) {
               case "price":
-                return <SetPrice />;
+                return (
+                  <SetPrice collectionId={collectionId} startIdx={startIdx} />
+                );
               case "transfer":
-                return <TransferNFT showPrice={showPrice} />;
+                return (
+                  <TransferNFT
+                    showPrice={showPrice}
+                    collectionId={collectionId}
+                    startIdx={startIdx}
+                  />
+                );
               case "burn":
-                return <BurnNFT showPrice={showPrice} />;
+                return (
+                  <BurnNFT
+                    showPrice={showPrice}
+                    collectionId={collectionId}
+                    startIdx={startIdx}
+                  />
+                );
               default:
                 return <SetPrice />;
             }
           })()}
-          {/* {showTransfer ? (
-            <TransferNFT setShowTransfer={setShowTransfer} />
-          ) : null} */}
         </ModalBody>
-
-        {/* <ModalFooter>
-          <Button
-            mr={3}
-            bg="gray.900"
-            color="white"
-            _hover={{
-              bg: "purple.550",
-            }}
-          >
-            Create
-          </Button>
-          <Button
-            type="reset"
-            onClick={() => {
-              onClose();
-            }}
-          >
-            Cancel
-          </Button>
-        </ModalFooter> */}
       </ModalContent>
     </Modal>
   );
@@ -484,7 +598,14 @@ const ActionModal = ({ isOpen, onClose }) => {
 
 export default function Profile() {
   const { api, accounts, modules, ready } = useApi();
+
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [nftMetadata, setNFTMetada] = useState({
+    collectionId: "",
+    startIdx: "",
+    name: "",
+    uri: "",
+  });
 
   return (
     <Container py={12} maxW="container.lg">
@@ -506,8 +627,12 @@ export default function Profile() {
           </TabList>
           <TabPanels>
             <TabPanel>
-              {/* <Tokens accounts={accounts} /> */}
-              <SimpleGrid minChildWidth="280px">
+              <Tokens
+                accounts={accounts}
+                setNFTMetada={setNFTMetada}
+                openActionModal={onOpen}
+              />
+              {/* <SimpleGrid minChildWidth="280px">
                 <TokenCard
                   disableLink={true}
                   onClick={(e) => {
@@ -515,14 +640,21 @@ export default function Profile() {
                     console.log("qaq");
                   }}
                 />
-              </SimpleGrid>
+              </SimpleGrid> */}
             </TabPanel>
             <TabPanel>
               <p>two!</p>
             </TabPanel>
           </TabPanels>
         </Tabs>
-        <ActionModal isOpen={isOpen} onClose={onClose} />
+        <ActionModal
+          isOpen={isOpen}
+          onClose={onClose}
+          collectionId={nftMetadata.collectionId}
+          startIdx={nftMetadata.startIdx}
+          name={nftMetadata.name}
+          uri={nftMetadata.uri}
+        />
       </QueryClientProvider>
     </Container>
   );
