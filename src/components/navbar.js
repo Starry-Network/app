@@ -19,7 +19,7 @@ import { HamburgerIcon, CloseIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { web3Enable, web3Accounts } from "@polkadot/extension-dapp";
 import Identicon from "@polkadot/react-identicon";
 import { Link as ReachLink } from "react-router-dom";
-import { useApi } from "../utils/api";
+import { useApi } from "../hooks/api";
 
 const NAV_ITEMS = [
   {
@@ -32,11 +32,21 @@ const NAV_ITEMS = [
   },
   {
     label: "Split NFT",
-    href: "/splitNFT",
+    href: "/#",
+    children: [
+      {
+        label: "Create",
+        href: "/createSplitNFT",
+      },
+      {
+        label: "Split",
+        href: "/splitNFT",
+      },
+    ],
   },
   {
     label: "DAO",
-    href: "/DAOs",
+    href: "/",
     children: [
       {
         label: "Explore",
@@ -222,7 +232,7 @@ function NavBar() {
       } else {
         setAccounts(accounts);
       }
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const getAccountName = (account) => {

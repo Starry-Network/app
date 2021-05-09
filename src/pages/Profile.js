@@ -25,7 +25,7 @@ import { request, gql } from "graphql-request";
 
 import { SkeletonCard, TokenCard } from "../components/TokenCard";
 
-import { useApi } from "../utils/api";
+import { useApi } from "../hooks/api";
 import { useEffect } from "react";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;

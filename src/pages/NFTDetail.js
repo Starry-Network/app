@@ -53,8 +53,8 @@ import {
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
 
-import { useApi } from "../utils/api";
-import { useTransaction } from "../utils/transaction";
+import { useApi } from "../hooks/api";
+import { useTransaction } from "../hooks/transaction";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();

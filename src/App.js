@@ -5,7 +5,8 @@ import Layout from "./components/layout";
 import Home from "./pages/Home";
 import CreateNFT from "./pages/CreateNFT";
 import NFTDetail from "./pages/NFTDetail";
-import GraphNFT from './pages/GraphNFT'
+import GraphNFT from "./pages/GraphNFT";
+import CreateSplitNFT from "./pages/CreateSplitNFT";
 import SplitNFT from "./pages/SplitNFT";
 import DAOs from "./pages/DAOs";
 import DAODetail from "./pages/DAODetail";
@@ -29,6 +30,9 @@ function App() {
           </Route>
           <Route exact path="/graphNFT">
             <GraphNFT />
+          </Route>
+          <Route exact path="/createSplitNFT">
+            <CreateSplitNFT />
           </Route>
           <Route exact path="/splitNFT">
             <SplitNFT />

@@ -22,7 +22,6 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
-  
   useToast,
   Spinner,
 } from "@chakra-ui/react";
@@ -39,60 +38,17 @@ import {
   QueryClientProvider,
 } from "react-query";
 
-import ReactSelect from "react-select";
-
-import { request, gql } from "graphql-request";
-
 import Upload from "../components/Upload";
 import ipfs from "../utils/ipfs";
-import { useTransaction } from "../utils/transaction";
-import { useApi } from "../utils/api";
+import { useTransaction } from "../hooks/transaction";
+import { useApi } from "../hooks/api";
 import { getEvents } from "../utils/getEvents";
+import { useCollections } from "../hooks/queries";
+import Collections from '../components/Collections'
 
-// const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-// const endpoint = "https://graphqlzero.almansi.me/api";
 
 const queryClient = new QueryClient();
-
-function useCollections(accounts) {
-  const address = accounts && accounts.length > 0 ? accounts[0].address : null;
-
-  return useQuery(
-    "collections",
-    async () => {
-      const {
-        collections: { nodes },
-      } = await request(
-        endpoint,
-        gql`
-          query {
-            collections(
-              filter: {
-                owner: {
-                  equalTo: "${address}"
-                }
-              }
-            ) {
-              nodes {
-                id
-              }
-            }
-          }
-      `
-      );
-      const data = nodes.map((collection) => {
-        return { label: collection.id, value: collection.id };
-      });
-      console.log(nodes);
-      return data;
-    },
-    {
-      // enabled: enable,
-      enabled: !!address,
-    }
-  );
-}
 
 function CreateCollection({ isOpen, onOpen, onClose }) {
   const qc = useQueryClient();
@@ -294,49 +250,6 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
   );
 }
 
-const Collections = forwardRef(({ onChange, onBlur, name, accounts }, ref) => {
-  const { status, data, error } = useCollections(accounts);
-
-  return (
-    <>
-      {status === "loading" || status === "idle" ? (
-        <>
-          <Select
-            display="none"
-            name={name}
-            ref={ref}
-            onChange={onChange}
-            onBlur={onBlur}
-          ></Select>
-          <Spinner />
-        </>
-      ) : status === "error" ? (
-        <Select
-          placeholder={`Error: ${error.message}`}
-          name={name}
-          ref={ref}
-          onChange={onChange}
-          onBlur={onBlur}
-        ></Select>
-      ) : (
-        <Select
-          placeholder="Select collection"
-          name={name}
-          ref={ref}
-          onChange={onChange}
-          onBlur={onBlur}
-        >
-          {data.map((collection, index) => (
-            <option key={index} value={collection.value}>
-              {collection.value}
-            </option>
-          ))}
-        </Select>
-      )}
-    </>
-  );
-});
-
 export default function Create() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -355,12 +268,6 @@ export default function Create() {
   const { api, accounts, modules, ready } = useApi();
   const toast = useToast();
 
-  // const [address, setAddress] = useState("")
-
-  // useEffect(() => {
-  //   // console.log("qaq", accounts)
-  //   setAddress(accounts[0].address)
-  // }, [accounts])
   const newTransaction = useTransaction({
     api,
     accounts,
@@ -386,7 +293,6 @@ export default function Create() {
     try {
       console.log("Qaq");
       toast({
-        // title: "Info",
         description: "uploading image",
         status: "info",
         duration: 9000,
@@ -444,12 +350,6 @@ export default function Create() {
       });
       console.log(error);
     }
-    // return new Promise((resolve) => {
-    //   console.log("e", errors);
-
-    //   console.log(JSON.stringify(values, null, 2));
-    //   resolve();
-    // });
   };
 
   useEffect(() => {

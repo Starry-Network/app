@@ -5,7 +5,7 @@ import { ChakraProvider, extendTheme } from "@chakra-ui/react"
 // import { ColorModeScript } from "@chakra-ui/react"
 
 
-import { ApiProvider } from "./utils/api";
+import { ApiProvider } from "./hooks/api";
 
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";

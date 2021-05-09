@@ -12,8 +12,8 @@ import {
 } from "react-query";
 import { request, gql } from "graphql-request";
 
-import { useApi } from "../utils/api";
-import { useTransaction } from "../utils/transaction";
+import { useApi } from "../hooks/api";
+import { useTransaction } from "../hooks/transaction";
 // import TokenCard from "../components/TokenCard";
 import { TokenCard, SkeletonCard } from "../components/TokenCard";
 
