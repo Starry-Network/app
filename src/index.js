@@ -14,21 +14,19 @@ const colors = {
   purple: {
     550: "#6E1FFF"
   },
-  brand: {
-    100: "#f7fafc",
-    // ...
-    900: "#1a202c",
-  },
+  black: {
+    500: "#171923"
+  }
 }
 
 const config = {
-  initialColorMode: "light",
+  // initialColorMode: "dark",
   useSystemColorMode: false,
 }
 
 
 
-const theme = extendTheme({ colors, config })
+const theme = extendTheme({ colors, config, })
 
 
 ReactDOM.render(

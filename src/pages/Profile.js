@@ -1,8 +1,14 @@
-import {Fragment} from 'react'
+import { Fragment, useState, useEffect } from "react";
 import {
   Flex,
+  Spacer,
   Container,
+  Center,
+  Button,
+  Box,
   Avatar,
+  Image,
+  Divider,
   Heading,
   Text,
   Tabs,
@@ -12,6 +18,27 @@ import {
   TabPanel,
   SimpleGrid,
   Spinner,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Stack,
+  HStack,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  FormHelperText,
+  Input,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  Switch,
 } from "@chakra-ui/react";
 import {
   useQuery,
@@ -22,11 +49,11 @@ import {
   QueryClientProvider,
 } from "react-query";
 import { request, gql } from "graphql-request";
+import { useForm, FormProvider } from "react-hook-form";
 
 import { SkeletonCard, TokenCard } from "../components/TokenCard";
 
 import { useApi } from "../hooks/api";
-import { useEffect } from "react";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
@@ -123,7 +150,7 @@ const Tokens = ({ accounts }) => {
                       title={nft.data.metadata.name}
                       disableLink={true}
                       onClick={(e) => {
-                        console.log("qaq")
+                        console.log("qaq");
                       }}
                     />
                   </>
@@ -137,8 +164,327 @@ const Tokens = ({ accounts }) => {
   );
 };
 
+const BurnNFT = ({ showPrice }) => {
+  const methods = useForm();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = methods;
+
+  const onSubmit = (values) => {
+    console.log(values);
+  };
+
+  return (
+    <FormProvider {...methods}>
+      <FormLabel>Burn NFT</FormLabel>
+      <Divider />
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Stack mt="5" spacing={4}>
+          <FormControl isInvalid={errors.amount}>
+            <FormLabel>Amount</FormLabel>
+            <NumberInput defaultValue={1} min={1}>
+              <NumberInputField {...register("amount", { required: true })} />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <FormErrorMessage>
+              {errors.amount && "amount is required"}
+            </FormErrorMessage>
+          </FormControl>
+        </Stack>
+        <Flex mt="5">
+          <Spacer />
+          <Box>
+            <Button
+              type="submit"
+              mr={3}
+              bg="gray.900"
+              color="white"
+              _hover={{
+                bg: "purple.550",
+              }}
+            >
+              Burn
+            </Button>
+            <Button
+              type="reset"
+              onClick={() => {
+                // setShowTransfer(false)
+                showPrice();
+                reset("", {
+                  keepValues: false,
+                });
+              }}
+            >
+              Cancel
+            </Button>
+          </Box>
+        </Flex>
+      </form>
+    </FormProvider>
+  );
+};
+
+const TransferNFT = ({ showPrice }) => {
+  const methods = useForm();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = methods;
+
+  const onSubmit = (values) => {
+    console.log(values);
+  };
+
+  return (
+    <FormProvider {...methods}>
+      <FormLabel>Transfer NFT</FormLabel>
+      <Divider />
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Stack mt="5" spacing={4}>
+          <FormControl isInvalid={errors.receriver}>
+            <FormLabel htmlFor="receriver">Receiver address</FormLabel>
+            <Input
+              name="receriver"
+              placeholder="Receiver address"
+              {...register("receriver", { required: true })}
+            />
+            <FormErrorMessage>
+              {errors.receriver && "Receriver is required"}
+            </FormErrorMessage>
+          </FormControl>
+          <FormControl isInvalid={errors.amount}>
+            <FormLabel>Amount</FormLabel>
+            <NumberInput defaultValue={1} min={1}>
+              <NumberInputField {...register("amount", { required: true })} />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <FormErrorMessage>
+              {errors.amount && "amount is required"}
+            </FormErrorMessage>
+          </FormControl>
+        </Stack>
+        <Flex mt="5">
+          <Spacer />
+          <Box>
+            <Button
+              type="submit"
+              mr={3}
+              bg="gray.900"
+              color="white"
+              _hover={{
+                bg: "purple.550",
+              }}
+            >
+              Create
+            </Button>
+            <Button
+              type="reset"
+              onClick={() => {
+                showPrice();
+                reset("", {
+                  keepValues: false,
+                });
+              }}
+            >
+              Cancel
+            </Button>
+          </Box>
+        </Flex>
+      </form>
+    </FormProvider>
+  );
+};
+
+const SetPrice = () => {
+  const [showSetPrice, setShowSetPrice] = useState(false);
+  const methods = useForm();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = methods;
+
+  const onSubmit = (values) => {
+    console.log(values);
+  };
+  return (
+    <>
+      <FormControl display="flex" alignItems="center" mt="5">
+        <FormLabel htmlFor="email-alerts" mb="0">
+          Set price
+        </FormLabel>
+        <Switch
+          size="lg"
+          colorScheme="black"
+          onChange={(e) => setShowSetPrice(e.target.checked)}
+        />
+      </FormControl>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {showSetPrice ? (
+          <Stack mt="5" spacing={4}>
+            <FormControl isInvalid={errors.amount}>
+              <FormLabel>Amount</FormLabel>
+              <NumberInput defaultValue={1} min={1}>
+                <NumberInputField {...register("amount", { required: true })} />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
+              <FormErrorMessage>
+                {errors.amount && "amount is required"}
+              </FormErrorMessage>
+            </FormControl>
+            <FormControl isInvalid={errors.price}>
+              <FormLabel>Price</FormLabel>
+              <NumberInput defaultValue={1} min={0}>
+                <NumberInputField {...register("price", { required: true })} />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
+              <FormErrorMessage>
+                {errors.price && "price is required"}
+              </FormErrorMessage>
+            </FormControl>
+          </Stack>
+        ) : null}
+        <Box mt="5">
+          <Button
+            w="full"
+            type="submit"
+            mr={3}
+            bg="gray.900"
+            color="white"
+            _hover={{
+              bg: "purple.550",
+            }}
+          >
+            Set price
+          </Button>
+        </Box>
+      </form>
+    </>
+  );
+};
+
+const ActionModal = ({ isOpen, onClose }) => {
+  // const [showTransfer, setShowTransfer] = useState(false);
+  // const [showBurn, setShowBurn] = useState(false);
+  const [showComponent, setShowComponent] = useState("price");
+
+  const showTransfer = () => setShowComponent("transfer");
+  const showPrice = () => setShowComponent("price");
+  const showBurn = () => setShowComponent("burn");
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>NFT Title</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody pb={6}>
+          <Center>
+            <Image
+              rounded={"lg"}
+              boxSize="160px"
+              objectFit="contain"
+              src={
+                "https://lh3.googleusercontent.com/1_I7m72fLjas0kXfjYQ8p44gUhi5yMNYgi67t6gGu8ZCM5Z0zcwUAoRNYTlCnwgc1dDGeX4lnzgTfKfNTyJMtcI7trmA8TL32ked=s250"
+              }
+            />
+          </Center>
+          {showComponent === "price" ? (
+            <HStack mt="5" spacing="5">
+              <Button
+                w="full"
+                bg="gray.900"
+                borderRadius="none"
+                color="white"
+                _hover={{
+                  bg: "purple.550",
+                }}
+                onClick={() => showTransfer()}
+              >
+                Transfer
+              </Button>
+              <Button
+                w="full"
+                variant="outline"
+                bg="white"
+                border="2px"
+                borderRadius="none"
+                borderColor="gray.900"
+                _hover={{
+                  bg: "white",
+                }}
+                onClick={() => showBurn()}
+              >
+                Burn
+              </Button>
+            </HStack>
+          ) : null}
+          {(() => {
+            switch (showComponent) {
+              case "price":
+                return <SetPrice />;
+              case "transfer":
+                return <TransferNFT showPrice={showPrice} />;
+              case "burn":
+                return <BurnNFT showPrice={showPrice} />;
+              default:
+                return <SetPrice />;
+            }
+          })()}
+          {/* {showTransfer ? (
+            <TransferNFT setShowTransfer={setShowTransfer} />
+          ) : null} */}
+        </ModalBody>
+
+        {/* <ModalFooter>
+          <Button
+            mr={3}
+            bg="gray.900"
+            color="white"
+            _hover={{
+              bg: "purple.550",
+            }}
+          >
+            Create
+          </Button>
+          <Button
+            type="reset"
+            onClick={() => {
+              onClose();
+            }}
+          >
+            Cancel
+          </Button>
+        </ModalFooter> */}
+      </ModalContent>
+    </Modal>
+  );
+};
+
 export default function Profile() {
   const { api, accounts, modules, ready } = useApi();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
     <Container py={12} maxW="container.lg">
@@ -160,13 +506,23 @@ export default function Profile() {
           </TabList>
           <TabPanels>
             <TabPanel>
-              <Tokens accounts={accounts} />
+              {/* <Tokens accounts={accounts} /> */}
+              <SimpleGrid minChildWidth="280px">
+                <TokenCard
+                  disableLink={true}
+                  onClick={(e) => {
+                    onOpen();
+                    console.log("qaq");
+                  }}
+                />
+              </SimpleGrid>
             </TabPanel>
             <TabPanel>
               <p>two!</p>
             </TabPanel>
           </TabPanels>
         </Tabs>
+        <ActionModal isOpen={isOpen} onClose={onClose} />
       </QueryClientProvider>
     </Container>
   );

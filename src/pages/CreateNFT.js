@@ -70,6 +70,7 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    reset
   } = methods;
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -240,7 +241,11 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
                 >
                   Create
                 </Button>
-                <Button onClick={onClose}>Cancel</Button>
+                <Button type="reset" onClick={() => {
+                  onClose(); reset('', {
+                    keepValues: false,
+                  });
+                }}>Cancel</Button>
               </ModalFooter>
             </ModalContent>
           </form>
