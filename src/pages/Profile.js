@@ -81,6 +81,7 @@ function useNFTs(accounts) {
           ) {
             nodes {
               id
+              endIdx
               owner
               isSub
               uri
@@ -150,6 +151,11 @@ const Tokens = ({ accounts, setNFTMetada, openActionModal }) => {
                     <TokenCard
                       url={`https://gateway.ipfs.io/ipfs/${nft.data.metadata.asset}`}
                       title={nft.data.metadata.name}
+                      amount={
+                        Number(nft.data.nftData.endIdx) -
+                        Number(nft.data.nftData.id.split("-")[1]) +
+                        1
+                      }
                       disableLink={true}
                       onClick={(e) => {
                         // console.log("qaq");
@@ -427,12 +433,15 @@ const SetPrice = ({ collectionId, startIdx }) => {
     }
 
     try {
-      await newTransaction("exchangeModule", "sellNft", [
+      const result = await newTransaction("exchangeModule", "sellNft", [
         collectionId,
         startIdx,
         values.amount,
         values.price,
       ]);
+      if (result && result.success) {
+        setShowSetPrice(false);
+      }
     } catch (error) {
       toast({
         description: error.toString(),
@@ -526,7 +535,7 @@ const ActionModal = ({
         <ModalHeader>{name}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
-          <Center>
+          <Center mb="10">
             <Image
               rounded={"lg"}
               boxSize="160px"

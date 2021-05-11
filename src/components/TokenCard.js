@@ -16,13 +16,14 @@ export function TokenCard({
   href = "/NFTDetail",
   title = "NFT Title NFT Title NFT Title NFT Title",
   url = "https://lh3.googleusercontent.com/1_I7m72fLjas0kXfjYQ8p44gUhi5yMNYgi67t6gGu8ZCM5Z0zcwUAoRNYTlCnwgc1dDGeX4lnzgTfKfNTyJMtcI7trmA8TL32ked=s250",
-  price = "0.002",
+  // price = "0.002",
+  price = false,
   symbol = "DOT",
   amount = "2",
   disableLink = false,
   onClick = () => { },
 }) {
-  
+
   return (
     <Center py={5} onClick={onClick}>
       <LinkBox
@@ -51,7 +52,8 @@ export function TokenCard({
             maxW="240px"
             isTruncated
           >
-            {price} {symbol}
+            {price ? <>{price} {symbol}</> : null}
+
           </Text>
           <Text
             color={"gray.500"}

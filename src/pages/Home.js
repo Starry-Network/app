@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { useToast, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
+import { useToast, SimpleGrid, Spinner, Text, Center } from "@chakra-ui/react";
 import { stringToHex } from "@polkadot/util";
 
 import {
@@ -20,37 +20,29 @@ import { TokenCard, SkeletonCard } from "../components/TokenCard";
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
 
-function useOrders(accounts) {
-  const address = accounts && accounts.length > 0 ? accounts[0].address : null;
-
-  return useQuery(
-    "orders",
-    async () => {
-      const {
-        orders: { nodes },
-      } = await request(
-        endpoint,
-        gql`
-          query {
-            orders {
-              nodes {
-                id
-                amount
-                seller
-                nftId
-                price
-              }
+function useOrders() {
+  return useQuery("orders", async () => {
+    const {
+      orders: { nodes },
+    } = await request(
+      endpoint,
+      gql`
+        query {
+          orders {
+            nodes {
+              id
+              amount
+              seller
+              nftId
+              price
             }
           }
-        `
-      );
-      console.log("order nodes", nodes);
-      return nodes;
-    },
-    {
-      enabled: !!address,
-    }
-  );
+        }
+      `
+    );
+    console.log("order nodes", nodes);
+    return nodes;
+  });
 }
 
 function useOrdersWithNFTs(data) {
@@ -91,25 +83,27 @@ function useOrdersWithNFTs(data) {
   );
 }
 
-const Cards = ({ accounts }) => {
-  const { status, data, error } = useOrders(accounts);
+const Cards = () => {
+  const { status, data, error } = useOrders();
 
+  console.log(status, data, error)
   const orderWithNFTs = useOrdersWithNFTs(data);
 
   console.log(orderWithNFTs);
   return (
     <>
       {status === "loading" || status === "idle" ? (
-        <Spinner />
+        <Center>
+          <Spinner mt="10" />
+        </Center>
       ) : status === "error" ? (
         <Text>{`Error: ${error.message}`}</Text>
       ) : (
-        // <>{JSON.stringify(x)}</>
         <SimpleGrid minChildWidth="280px" py={12}>
-          {orderWithNFTs.map(({ data, isIdle, isLoading }, index) => {
+          {orderWithNFTs.map(({ data, isIdle, isLoading, isError }, index) => {
             return (
               <Fragment key={index}>
-                {isIdle || isLoading ? (
+                {isIdle || isLoading || isError ? (
                   <>
                     <SkeletonCard key={index} />
                   </>
@@ -149,7 +143,7 @@ function Home() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Cards accounts={accounts} />
+      <Cards />
       {/* <SimpleGrid minChildWidth="280px" py={12}>
         <TokenCard />
         <TokenCard url="https://ipfs.rarible.com/ipfs/QmP4rvmwRcx7mUKAKhtLgfjNi11F5kEQAXxB3CFZp6Kz3c/image.jpeg" />
