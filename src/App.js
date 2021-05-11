@@ -40,7 +40,7 @@ function App() {
           <Route exact path="/DAOs">
             <DAOs />
           </Route>
-          <Route exact path="/DAODetail">
+          <Route exact path="/DAODetail/:daoId">
             <DAODetail />
           </Route>
           <Route exact path="/profile">

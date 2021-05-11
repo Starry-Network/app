@@ -118,7 +118,7 @@ function DAOCard({
     <Center py={5}>
       <LinkBox
         as={ReachLink}
-        to={href}
+        to={`DAODetail/${id}`}
         role={"group"}
         p={6}
         maxW={"260px"}
@@ -155,7 +155,7 @@ const Cards = () => {
     <>
       {status !== "success" ? (
         <Center>
-          <Spinner  mt="10"/>
+          <Spinner mt="10" />
         </Center>
       ) : (
         <SimpleGrid minChildWidth="280px" py={12}>
@@ -176,7 +176,6 @@ const Cards = () => {
           ))}
         </SimpleGrid>
       )}
-     
     </>
   );
 };
