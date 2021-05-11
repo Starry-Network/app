@@ -212,10 +212,10 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
                 </FormControl>
 
                 <FormControl mt={4}>
-                  <FormLabel htmlFor="describe">Describe</FormLabel>
+                  <FormLabel htmlFor="description">Description</FormLabel>
                   <Input
-                    placeholder="Collection describe"
-                    {...register("describe")}
+                    placeholder="Collection description"
+                    {...register("description")}
                   />
                 </FormControl>
 
@@ -311,7 +311,7 @@ export default function Create() {
       let metadata = {
         minter: "",
         name: "",
-        describe: "",
+        description: "",
         asset: "",
       };
 

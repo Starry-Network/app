@@ -14,6 +14,25 @@ import {
   SkeletonCircle,
   SkeletonText,
   Spinner,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useToast,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  FormHelperText,
+  Input,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
 } from "@chakra-ui/react";
 
 import {
@@ -28,9 +47,14 @@ import { useParams } from "react-router-dom";
 
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
+import { urlSource } from "ipfs-http-client";
+import { stringToHex } from "@polkadot/util";
 
 import { useApi } from "../hooks/api";
 import { useTransaction } from "../hooks/transaction";
+import ipfs from "../utils/ipfs";
+
+import Collections from "../components/Collections";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
@@ -132,14 +156,23 @@ const Proposal = () => {
   );
 };
 
-const DAOInfoCard = ({ name, description, asset, members, shares }) => {
+const DAOInfoCard = ({
+  id,
+  name = "a dao",
+  description = "some description",
+  asset,
+  members = "1",
+  shares = "1",
+}) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   return (
     <Box w="full" p="6" boxShadow="md" rounded="lg" minH="150px">
       <Flex direction="row" align="center" w="full">
         <Avatar
           size="md"
           name={name}
-          src={`https://gateway.ipfs.io/ipfs/${asset}`}
+          src={Boolean(asset) ? `https://gateway.ipfs.io/ipfs/${asset}` : null}
         />
         <Heading ml="4" fontSize="xl" noOfLines="1">
           {name}
@@ -148,26 +181,265 @@ const DAOInfoCard = ({ name, description, asset, members, shares }) => {
       <Text py="5" color="gray.500">
         {description}
       </Text>
-      <Grid templateColumns="repeat(3, 1fr)" gap={6}>
-        <Box w="full">
-          <Text fontWeight="bold">Members</Text>
-          <Text>{members}</Text>
-        </Box>
-        <Box w="full">
-          <Text fontWeight="bold">Shares</Text>
-          <Text>{shares}</Text>
-        </Box>
+      <Flex w="full">
+        <Flex flex="1" justify="start">
+          <Box w="full">
+            <Text fontWeight="bold">Members</Text>
+            <Text>{members}</Text>
+          </Box>
+          <Box w="full" ml="4">
+            <Text fontWeight="bold">Shares</Text>
+            <Text>{shares}</Text>
+          </Box>
+        </Flex>
         <Spacer />
-      </Grid>
+        <Flex flex="1" justify="end">
+          <Flex w="full" h="full" align="center" justify="center">
+            <Button colorScheme="black" onClick={() => onOpen()}>
+              New Proposal
+            </Button>
+          </Flex>
+        </Flex>
+      </Flex>
+      <NewProposal isOpen={isOpen} onClose={onClose} daoId={id} />
     </Box>
   );
 };
 
-const DAOWithProposals = ({ data }) => {
+const NewProposal = ({ isOpen, onClose, daoId }) => {
+  const { api, accounts, modules, ready } = useApi();
+  console.log("id:", daoId);
+  const toast = useToast();
+  const newTransaction = useTransaction({
+    api,
+    accounts,
+    ready,
+    modules,
+    toast,
+  });
+
+  const methods = useForm();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = methods;
+
+  const onSubmit = async (values) => {
+    console.log(values);
+    if (!(accounts && accounts.length > 0)) {
+      return toast({
+        title: "Error",
+        description: "There is no account in wallet",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+    }
+    try {
+      let metadata = {
+        title: "",
+        description: "",
+      };
+
+      metadata = {
+        ...metadata,
+        title: values.title,
+        description: values.description,
+      };
+
+      toast({
+        description: "uploading metadata",
+        status: "info",
+        duration: 9000,
+        isClosable: true,
+      });
+
+      const metadataInfo = await ipfs.add(JSON.stringify(metadata));
+      const metadataCID = metadataInfo.cid.toString();
+
+      const metadataCIDHash = stringToHex(metadataCID);
+
+      const clonedValues = JSON.parse(JSON.stringify(values));
+      Object.keys(clonedValues).forEach((key) => {
+        if (clonedValues[key] === "") {
+          clonedValues[key] = null;
+        }
+      });
+
+      const tributeNFT = clonedValues.collection
+        ? [clonedValues.collection, clonedValues.startIdx]
+        : null;
+
+      const result = await newTransaction("nftdaoModule", "submitProposal", [
+        daoId,
+        clonedValues.applicant,
+        clonedValues.shares,
+        clonedValues.tributeOffered,
+        tributeNFT,
+        metadataCIDHash,
+        clonedValues.action,
+      ]);
+
+      // if (result && result.success) {
+      //   console.log("tx result", result);
+      //   const events = await getEvents(api, result.hash, "collectionModule");
+      //   const newData = { label: events[0].data[1], value: events[0].data[1] };
+      //   console.log(newData);
+      //   mutate({ newData });
+      // }
+
+      console.log(metadataCID);
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+      console.log(error);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <ModalContent>
+            <ModalHeader>New Proposal</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody pb={6}>
+              <Stack spacing={4}>
+                <FormControl isInvalid={errors.title}>
+                  <FormLabel htmlFor="name">Title</FormLabel>
+                  <Input
+                    placeholder="Title"
+                    {...register("title", { required: true })}
+                  />
+                  <FormErrorMessage>
+                    {errors.title && "Title is required"}
+                  </FormErrorMessage>
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel htmlFor="description">Description</FormLabel>
+                  <Input
+                    placeholder="description"
+                    {...register("description")}
+                  />
+                </FormControl>
+                <FormControl isInvalid={errors.applicant}>
+                  <FormLabel>Applicant</FormLabel>
+                  <Input
+                    placeholder="Applicant address"
+                    {...register("applicant", { required: true })}
+                    defaultValue={
+                      accounts && accounts.length > 0
+                        ? accounts[0].address
+                        : null
+                    }
+                  />
+                  <FormErrorMessage>
+                    {errors.applicant && "Applicant is required"}
+                  </FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={errors.shares}>
+                  <FormLabel>Shares requested</FormLabel>
+                  <NumberInput defaultValue={0} min={0}>
+                    <NumberInputField
+                      {...register("shares", { required: true })}
+                    />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  <FormErrorMessage>
+                    {errors.amount && "shares is required"}
+                  </FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={errors.tributeOffered}>
+                  <FormLabel>Tribute offered</FormLabel>
+                  <NumberInput defaultValue={1} min={0}>
+                    <NumberInputField
+                      {...register("tributeOffered", { required: true })}
+                    />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                  <FormErrorMessage>
+                    {errors.tributeOffered && "Tribute offered is required"}
+                  </FormErrorMessage>
+                </FormControl>
+                <FormControl>
+                  <FormLabel htmlFor="collection">Collection</FormLabel>
+                  <Collections
+                    accounts={accounts}
+                    {...register("collection")}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>start Idx</FormLabel>
+                  <NumberInput defaultValue={0} min={0}>
+                    <NumberInputField {...register("startIdx")} />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Action</FormLabel>
+                  <Input
+                    placeholder="Action encoded bytes"
+                    {...register("action")}
+                  />
+                </FormControl>
+              </Stack>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                mr={3}
+                bg="gray.900"
+                color="white"
+                _hover={{
+                  bg: "purple.550",
+                }}
+                type="submit"
+              >
+                Submit
+              </Button>
+              <Button
+                type="reset"
+                onClick={() => {
+                  onClose();
+                  reset("", {
+                    keepValues: false,
+                  });
+                }}
+              >
+                Cancel
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </form>
+      </FormProvider>
+    </Modal>
+  );
+};
+
+const DAOWithProposals = ({ data, daoId }) => {
   console.log(data);
   return (
     <>
       <DAOInfoCard
+        id={daoId}
         name={data.metadata.name}
         description={data.metadata.description}
         asset={data.metadata.asset}
@@ -191,7 +463,7 @@ const Detail = ({ daoId }) => {
       {status !== "success" ? (
         <SkeletonDAOWithProposals />
       ) : (
-        <DAOWithProposals data={data} />
+        <DAOWithProposals data={data} daoId={daoId} />
       )}
     </>
   );
