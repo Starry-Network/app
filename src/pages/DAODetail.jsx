@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import {
   Avatar,
   Box,
@@ -34,7 +34,9 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  IconButton,
 } from "@chakra-ui/react";
+import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 
 import {
   useQuery,
@@ -114,12 +116,10 @@ function useProposals(data) {
         return {
           queryKey: ["proposal", proposal.id],
           queryFn: async () => {
-            console.log("qaqaqaqa", proposal);
             const response = await fetch(
               `https://gateway.ipfs.io/ipfs/${proposal.details}`
             );
             const metadata = await response.json();
-            console.log("22222222", metadata);
             return {
               ...proposal,
               metadata,
@@ -165,7 +165,53 @@ const SkeletonDAOWithProposals = () => (
   </>
 );
 
-const Proposal = ({ daoId, title, yes = "", no = "", sponsored = false }) => {
+const Proposal = ({
+  daoId,
+  id,
+  index,
+  title,
+  yes = "",
+  no = "",
+  sponsored = false,
+  openVoteModal,
+  setIds,
+}) => {
+  const { api, accounts, modules, ready } = useApi();
+  const toast = useToast();
+  const newTransaction = useTransaction({
+    api,
+    accounts,
+    ready,
+    modules,
+    toast,
+  });
+
+  const sponsor = async () => {
+    if (!(accounts && accounts.length > 0)) {
+      return toast({
+        title: "Error",
+        description: "There is no account in wallet",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+    }
+    try {
+      await newTransaction("nftdaoModule", "sponsorProposal", [
+        daoId,
+        id.split("-")[1],
+      ]);
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+      console.log(error);
+    }
+  };
+
   return (
     <Flex flexDir="row" flex="5" boxShadow="md" rounded="lg">
       <Flex
@@ -184,9 +230,22 @@ const Proposal = ({ daoId, title, yes = "", no = "", sponsored = false }) => {
       <Flex flex="1">
         <Center w="full">
           {sponsored ? (
-            <Button colorScheme="black">Vote</Button>
+            <Button
+              colorScheme="black"
+              onClick={() => {
+                setIds({
+                  daoId,
+                  index,
+                });
+                openVoteModal();
+              }}
+            >
+              Vote
+            </Button>
           ) : (
-            <Button colorScheme="black">Sponsor</Button>
+            <Button colorScheme="black" onClick={async () => await sponsor()}>
+              Sponsor
+            </Button>
           )}
         </Center>
       </Flex>
@@ -246,7 +305,6 @@ const DAOInfoCard = ({
 
 const NewProposal = ({ isOpen, onClose, daoId }) => {
   const { api, accounts, modules, ready } = useApi();
-  console.log("id:", daoId);
   const toast = useToast();
   const newTransaction = useTransaction({
     api,
@@ -464,10 +522,87 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
   );
 };
 
+const VoteModal = ({ isOpen, onClose, ids }) => {
+  const { api, accounts, modules, ready } = useApi();
+  const toast = useToast();
+  const newTransaction = useTransaction({
+    api,
+    accounts,
+    ready,
+    modules,
+    toast,
+  });
+
+  const vote = async (yes) => {
+    console.log(ids);
+    try {
+      await newTransaction("nftdaoModule", "voteProposal", [
+        ids.daoId,
+        ids.index,
+        yes,
+      ]);
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+      console.log(error);
+    }
+  };
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Vote</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Button
+            w="full"
+            variant="outline"
+            bg="white"
+            border="2px"
+            borderRadius="none"
+            borderColor="gray.900"
+            _hover={{
+              bg: "white",
+            }}
+            leftIcon={<CheckIcon />}
+            onClick={async () => await vote(true)}
+          >
+            Yes
+          </Button>
+          <Button
+            w="full"
+            bg="gray.900"
+            borderRadius="none"
+            color="white"
+            mt="4"
+            _hover={{
+              bg: "purple.550",
+            }}
+            leftIcon={<CloseIcon />}
+            onClick={async () => await vote(false)}
+          >
+            No
+          </Button>
+        </ModalBody>
+
+        <ModalFooter />
+      </ModalContent>
+    </Modal>
+  );
+};
+
 const DAOWithProposals = ({ data, daoId }) => {
-  console.log(data);
+  const [ids, setIds] = useState({
+    daoId: "",
+    index: "",
+  });
   const proposals = useProposals(data);
-  console.log(proposals);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   return (
     <>
       <DAOInfoCard
@@ -479,6 +614,8 @@ const DAOWithProposals = ({ data, daoId }) => {
         shares={data.totalShares}
       />
       <Stack py="10">
+        <VoteModal isOpen={isOpen} onClose={onClose} ids={ids} />
+
         {proposals.map(({ isLoading, data }, index) => (
           <Fragment key={index}>
             {isLoading ? (
@@ -486,10 +623,14 @@ const DAOWithProposals = ({ data, daoId }) => {
             ) : (
               <Proposal
                 daoId={daoId}
+                id={data.id}
+                index={data.index}
+                setIds={setIds}
                 title={data.metadata.title}
                 yes={data.yesVotes}
                 no={data.noVotes}
                 sponsored={data.sponsored}
+                openVoteModal={onOpen}
               />
             )}
           </Fragment>

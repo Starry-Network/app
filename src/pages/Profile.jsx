@@ -547,18 +547,6 @@ const ActionModal = ({
             <HStack mt="5" spacing="5">
               <Button
                 w="full"
-                bg="gray.900"
-                borderRadius="none"
-                color="white"
-                _hover={{
-                  bg: "purple.550",
-                }}
-                onClick={() => showTransfer()}
-              >
-                Transfer
-              </Button>
-              <Button
-                w="full"
                 variant="outline"
                 bg="white"
                 border="2px"
@@ -566,6 +554,18 @@ const ActionModal = ({
                 borderColor="gray.900"
                 _hover={{
                   bg: "white",
+                }}
+                onClick={() => showTransfer()}
+              >
+                Transfer
+              </Button>
+              <Button
+                w="full"
+                bg="gray.900"
+                borderRadius="none"
+                color="white"
+                _hover={{
+                  bg: "purple.550",
                 }}
                 onClick={() => showBurn()}
               >
