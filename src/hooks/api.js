@@ -54,7 +54,7 @@ const ApiProvider = ({ children }) => {
     console.log("api", api)
     return (
         <ApiContext.Provider
-            value={{ api, accounts, modules, ready: !!api, setAccounts }}
+            value={{ api, accounts, modules, ready: !!api, setAccounts, isApiInitialized, apiError }}
         >
             {children}
         </ApiContext.Provider>

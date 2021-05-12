@@ -32,7 +32,7 @@ export default function SplitNFT() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors,  },
   } = methods;
 
   const toast = useToast();
@@ -56,7 +56,7 @@ export default function SplitNFT() {
       });
     }
 
-    const palletId = "5EYCAe5cvWwuASaBGzVg1qYZsaxUYejHQf9rqLHKCEeTfbA8";
+    // const palletId = "5EYCAe5cvWwuASaBGzVg1qYZsaxUYejHQf9rqLHKCEeTfbA8";
     const nftId = `${values.collection}-${values.startIdx}`;
     const { nft } = await request(
       endpoint,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, forwardRef } from "react";
+import React, { useEffect } from "react";
 import {
   Container,
   FormControl,
@@ -13,7 +13,6 @@ import {
   NumberDecrementStepper,
   Button,
   Stack,
-  Select,
   useDisclosure,
   Modal,
   ModalOverlay,
@@ -23,7 +22,6 @@ import {
   ModalBody,
   ModalCloseButton,
   useToast,
-  Spinner,
 } from "@chakra-ui/react";
 
 import { useForm, FormProvider } from "react-hook-form";
@@ -31,7 +29,6 @@ import { stringToHex } from "@polkadot/util";
 import { urlSource } from "ipfs-http-client";
 
 import {
-  useQuery,
   useMutation,
   useQueryClient,
   QueryClient,
@@ -43,10 +40,7 @@ import ipfs from "../utils/ipfs";
 import { useTransaction } from "../hooks/transaction";
 import { useApi } from "../hooks/api";
 import { getEvents } from "../utils/getEvents";
-import { useCollections } from "../hooks/queries";
-import Collections from '../components/Collections'
-
-const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
+import Collections from "../components/Collections";
 
 const queryClient = new QueryClient();
 
@@ -70,10 +64,8 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset
+    reset,
   } = methods;
-
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const { mutate } = useMutation(
     (newData) => {
@@ -102,13 +94,9 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
   );
 
   const onSubmit = async (values) => {
-    // return console.log(typeof newTransaction);
-
     console.log("values", values);
     console.log("e", errors);
 
-    await sleep(3000);
-    // console.log(values);
     const blobUrl = values.file[0].preview;
     console.log(blobUrl);
     console.log("in transaction", accounts);
@@ -241,11 +229,17 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
                 >
                   Create
                 </Button>
-                <Button type="reset" onClick={() => {
-                  onClose(); reset('', {
-                    keepValues: false,
-                  });
-                }}>Cancel</Button>
+                <Button
+                  type="reset"
+                  onClick={() => {
+                    onClose();
+                    reset("", {
+                      keepValues: false,
+                    });
+                  }}
+                >
+                  Cancel
+                </Button>
               </ModalFooter>
             </ModalContent>
           </form>
@@ -263,7 +257,7 @@ export default function Create() {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors },
   } = methods;
 
   console.log("select collection:", watch("collection"));

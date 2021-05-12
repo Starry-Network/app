@@ -12,7 +12,6 @@ import {
   Spinner,
   useColorModeValue,
 } from "@chakra-ui/react";
-import NanoClamp from "nanoclamp";
 import { Link as ReachLink } from "react-router-dom";
 
 import {

@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Button,
   Container,
@@ -30,8 +29,7 @@ export default function SummonDAO() {
   const {
     register,
     handleSubmit,
-    watch,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors },
   } = methods;
 
   const { api, accounts, modules, ready } = useApi();

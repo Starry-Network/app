@@ -16,7 +16,6 @@ import {
   HStack,
   Button,
   Skeleton,
-  SkeletonCircle,
   SkeletonText,
   Spinner,
   Modal,
@@ -29,8 +28,6 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
-  FormHelperText,
-  Input,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
@@ -42,14 +39,7 @@ import {
 
 import { useParams } from "react-router-dom";
 
-import {
-  useQuery,
-  useQueries,
-  useMutation,
-  useQueryClient,
-  QueryClient,
-  QueryClientProvider,
-} from "react-query";
+import { useQuery, QueryClient, QueryClientProvider } from "react-query";
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
 
@@ -159,7 +149,7 @@ const BuyModal = ({ name, isOpen, onClose, orderId }) => {
   };
 
   const onSubmit = async (values) => {
-    console.log(values)
+    console.log(values);
     await buy(orderId, values.amount);
   };
 
@@ -219,11 +209,11 @@ const Detail = ({ nftId, orderId = "null" }) => {
   const {
     status: NFTMetadataStatus,
     data: NFTMetadataData,
-    error: NFTMetadataError,
   } = useNFTMetadata(nftId);
-  const { status: orderStatus, data: orderData, error: orderError } = useOrder(
-    orderId === "null" ? undefined : orderId
-  );
+  const {
+    status: orderStatus,
+    data: orderData,
+  } = useOrder(orderId === "null" ? undefined : orderId);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -363,7 +353,12 @@ const Detail = ({ nftId, orderId = "null" }) => {
                       BUY
                     </Button>
                   )}
-                  <BuyModal isOpen={isOpen} onClose={onClose} orderId={orderId} name={NFTMetadataData.metadata.name}/>
+                  <BuyModal
+                    isOpen={isOpen}
+                    onClose={onClose}
+                    orderId={orderId}
+                    name={NFTMetadataData.metadata.name}
+                  />
                 </Box>
               </Stack>
             </Box>

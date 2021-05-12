@@ -9,7 +9,7 @@ export async function getEvents(api, blockHash, pallet = "collectionModule") {
         phase.isApplyExtrinsic &&
         phase.asApplyExtrinsic.eq(index)
       )
-      .filter(({ event }) => event.section == pallet).map(event => event.toHuman()).map(({ event }) => {
+      .filter(({ event }) => event.section === pallet).map(event => event.toHuman()).map(({ event }) => {
         return {
           section: event.section,
           method: event.method,

@@ -7,14 +7,12 @@ import {
   Flex,
   Heading,
   Text,
-  Grid,
   Spacer,
   Stack,
   HStack,
   Center,
   SkeletonCircle,
   SkeletonText,
-  Spinner,
   useDisclosure,
   Modal,
   ModalOverlay,
@@ -27,22 +25,18 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
-  FormHelperText,
   Input,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
-  IconButton,
 } from "@chakra-ui/react";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 
 import {
   useQuery,
   useQueries,
-  useMutation,
-  useQueryClient,
   QueryClient,
   QueryClientProvider,
 } from "react-query";
@@ -50,7 +44,6 @@ import { useParams } from "react-router-dom";
 
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
-import { urlSource } from "ipfs-http-client";
 import { stringToHex } from "@polkadot/util";
 
 import { useApi } from "../hooks/api";
@@ -199,7 +192,7 @@ const Proposal = ({
       setEndVotingPeriod(startingPeriod + votingPeriod);
       setEndGracePeriod(startingPeriod + votingPeriod + gracePeriod);
     }
-  }, []);
+  }, [startingPeriod, votingPeriod, gracePeriod]);
 
   const { api, accounts, modules, ready } = useApi();
   const toast = useToast();
@@ -414,9 +407,8 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
   const {
     register,
     handleSubmit,
-    watch,
     reset,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors },
   } = methods;
 
   const onSubmit = async (values) => {
@@ -465,7 +457,7 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
         ? [clonedValues.collection, clonedValues.startIdx]
         : null;
 
-      const result = await newTransaction("nftdaoModule", "submitProposal", [
+      await newTransaction("nftdaoModule", "submitProposal", [
         daoId,
         clonedValues.applicant,
         clonedValues.shares,
@@ -725,9 +717,7 @@ const DAOWithProposals = ({ data, daoId }) => {
 
       return () => unsubscribeAll && unsubscribeAll();
     }
-  }, [bestNumber]);
-
-  console.log(proposals);
+  }, [bestNumber, data.summoningTime, data.periodDuration]);
 
   return (
     <>
@@ -775,7 +765,7 @@ const DAOWithProposals = ({ data, daoId }) => {
 };
 
 const Detail = ({ daoId }) => {
-  const { status, data, error } = useDaoWithMetadata(daoId);
+  const { status, data } = useDaoWithMetadata(daoId);
 
   return (
     <>

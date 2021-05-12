@@ -17,7 +17,6 @@ import {
 import { QueryClient, QueryClientProvider } from "react-query";
 
 import { useForm, FormProvider } from "react-hook-form";
-import { request, gql } from "graphql-request";
 import { stringToHex } from "@polkadot/util";
 import { urlSource } from "ipfs-http-client";
 
@@ -28,18 +27,17 @@ import ipfs from "../utils/ipfs";
 import Collections from "../components/Collections";
 import Upload from "../components/Upload";
 
-const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
 
 export default function SplitNFT() {
   const { api, accounts, modules, ready } = useApi();
-  
+
   const methods = useForm();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = methods;
 
   const toast = useToast();
@@ -125,7 +123,6 @@ export default function SplitNFT() {
       });
       console.log(error);
     }
-
   };
 
   return (

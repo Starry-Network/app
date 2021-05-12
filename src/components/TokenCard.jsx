@@ -6,11 +6,10 @@ import {
   Text,
   Stack,
   Image,
-  Skeleton, SkeletonCircle, SkeletonText
+  Skeleton,
+  SkeletonText,
 } from "@chakra-ui/react";
 import { Link as ReachLink } from "react-router-dom";
-
-
 
 export function TokenCard({
   href = "/NFTDetail",
@@ -21,9 +20,8 @@ export function TokenCard({
   symbol = "DOT",
   amount = "2",
   disableLink = false,
-  onClick = () => { },
+  onClick = () => {},
 }) {
-
   return (
     <Center py={5} onClick={onClick}>
       <LinkBox
@@ -52,8 +50,11 @@ export function TokenCard({
             maxW="240px"
             isTruncated
           >
-            {price ? <>{price} {symbol}</> : null}
-
+            {price ? (
+              <>
+                {price} {symbol}
+              </>
+            ) : null}
           </Text>
           <Text
             color={"gray.500"}
@@ -72,7 +73,7 @@ export function TokenCard({
 
 export function SkeletonCard() {
   return (
-    <Center py={5} >
+    <Center py={5}>
       <LinkBox
         p={6}
         maxW={"260px"}
@@ -80,8 +81,7 @@ export function SkeletonCard() {
         boxShadow={"md"}
         rounded={"lg"}
       >
-        <Center
-        >
+        <Center>
           {/* <Image rounded={"lg"} boxSize="220px" objectFit="contain" src={url} /> */}
           <Skeleton height="280px" width="280px" />
         </Center>
@@ -90,5 +90,5 @@ export function SkeletonCard() {
         </Stack>
       </LinkBox>
     </Center>
-  )
+  );
 }

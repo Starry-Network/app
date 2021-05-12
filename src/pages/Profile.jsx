@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState } from "react";
 import {
   Flex,
   Spacer,
@@ -23,7 +23,6 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
   Stack,
@@ -31,7 +30,6 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
-  FormHelperText,
   Input,
   NumberInput,
   NumberInputField,
@@ -44,8 +42,6 @@ import {
 import {
   useQuery,
   useQueries,
-  useMutation,
-  useQueryClient,
   QueryClient,
   QueryClientProvider,
 } from "react-query";
@@ -196,9 +192,8 @@ const BurnNFT = ({ showPrice, collectionId, startIdx }) => {
   const {
     register,
     handleSubmit,
-    watch,
     reset,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors },
   } = methods;
 
   const onSubmit = async (values) => {
@@ -291,9 +286,8 @@ const TransferNFT = ({ showPrice, collectionId, startIdx }) => {
   const {
     register,
     handleSubmit,
-    watch,
     reset,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors },
   } = methods;
 
   const toast = useToast();
@@ -407,9 +401,7 @@ const SetPrice = ({ collectionId, startIdx }) => {
   const {
     register,
     handleSubmit,
-    watch,
-    reset,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors },
   } = methods;
 
   const toast = useToast();
@@ -606,7 +598,7 @@ const ActionModal = ({
 };
 
 export default function Profile() {
-  const { api, accounts, modules, ready } = useApi();
+  const { accounts } = useApi();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [nftMetadata, setNFTMetada] = useState({
