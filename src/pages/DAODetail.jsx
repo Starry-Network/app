@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import {
   Avatar,
   Box,
@@ -78,6 +79,10 @@ function useDaoWithMetadata(daoId) {
                 nodes {
                   id
                   details
+                  noVotes
+                  yesVotes
+                  sponsored
+                  index
                 }
               }
             }
@@ -97,6 +102,35 @@ function useDaoWithMetadata(daoId) {
     {
       enabled: !!daoId,
     }
+  );
+}
+
+function useProposals(data) {
+  let proposals = data ? data.proposals.nodes : [];
+
+  return useQueries(
+    proposals.map(
+      (proposal) => {
+        return {
+          queryKey: ["proposal", proposal.id],
+          queryFn: async () => {
+            console.log("qaqaqaqa", proposal);
+            const response = await fetch(
+              `https://gateway.ipfs.io/ipfs/${proposal.details}`
+            );
+            const metadata = await response.json();
+            console.log("22222222", metadata);
+            return {
+              ...proposal,
+              metadata,
+            };
+          },
+        };
+      },
+      {
+        enabled: data && data.length >= 0,
+      }
+    )
   );
 }
 
@@ -131,7 +165,7 @@ const SkeletonDAOWithProposals = () => (
   </>
 );
 
-const Proposal = () => {
+const Proposal = ({ daoId, title, yes = "", no = "", sponsored = false }) => {
   return (
     <Flex flexDir="row" flex="5" boxShadow="md" rounded="lg">
       <Flex
@@ -141,15 +175,19 @@ const Proposal = () => {
         flexDir="column"
         justify="space-around"
       >
-        <Text fontWeight="bold">A Proposal Title</Text>
+        <Text fontWeight="bold">{title}</Text>
         <HStack>
-          <Text>2 Yes</Text>
-          <Text>3 No</Text>
+          <Text>{yes} Yes</Text>
+          <Text>{no} No</Text>
         </HStack>
       </Flex>
       <Flex flex="1">
         <Center w="full">
-          <Button>Vote</Button>
+          {sponsored ? (
+            <Button colorScheme="black">Vote</Button>
+          ) : (
+            <Button colorScheme="black">Sponsor</Button>
+          )}
         </Center>
       </Flex>
     </Flex>
@@ -282,14 +320,6 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
         metadataCIDHash,
         clonedValues.action,
       ]);
-
-      // if (result && result.success) {
-      //   console.log("tx result", result);
-      //   const events = await getEvents(api, result.hash, "collectionModule");
-      //   const newData = { label: events[0].data[1], value: events[0].data[1] };
-      //   console.log(newData);
-      //   mutate({ newData });
-      // }
 
       console.log(metadataCID);
     } catch (error) {
@@ -436,6 +466,8 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
 
 const DAOWithProposals = ({ data, daoId }) => {
   console.log(data);
+  const proposals = useProposals(data);
+  console.log(proposals);
   return (
     <>
       <DAOInfoCard
@@ -447,8 +479,20 @@ const DAOWithProposals = ({ data, daoId }) => {
         shares={data.totalShares}
       />
       <Stack py="10">
-        {data.proposals.nodes.map(() => (
-          <Proposal />
+        {proposals.map(({ isLoading, data }, index) => (
+          <Fragment key={index}>
+            {isLoading ? (
+              <SkeletonDAOWithProposals />
+            ) : (
+              <Proposal
+                daoId={daoId}
+                title={data.metadata.title}
+                yes={data.yesVotes}
+                no={data.noVotes}
+                sponsored={data.sponsored}
+              />
+            )}
+          </Fragment>
         ))}
       </Stack>
     </>
