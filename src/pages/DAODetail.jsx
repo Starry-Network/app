@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import {
   Avatar,
   Box,
@@ -73,6 +73,10 @@ function useDaoWithMetadata(daoId) {
             dao(id: "${daoId}") {
               metadata
               totalShares
+              summoningTime
+              periodDuration
+              votingPeriod
+              gracePeriod
               members {
                 totalCount
               }
@@ -80,11 +84,14 @@ function useDaoWithMetadata(daoId) {
                 totalCount
                 nodes {
                   id
+                  index
                   details
                   noVotes
                   yesVotes
                   sponsored
-                  index
+                  startingPeriod
+                  processed
+                  didPass
                 }
               }
             }
@@ -175,7 +182,25 @@ const Proposal = ({
   sponsored = false,
   openVoteModal,
   setIds,
+  blockNumber,
+  currentPeriod,
+  startingPeriod,
+  votingPeriod,
+  gracePeriod,
+  periodDuration,
+  processed,
+  didPass,
 }) => {
+  const [endVotingPeriod, setEndVotingPeriod] = useState(0);
+  const [endGracePeriod, setEndGracePeriod] = useState(0);
+
+  useEffect(() => {
+    if (startingPeriod) {
+      setEndVotingPeriod(startingPeriod + votingPeriod);
+      setEndGracePeriod(startingPeriod + votingPeriod + gracePeriod);
+    }
+  }, []);
+
   const { api, accounts, modules, ready } = useApi();
   const toast = useToast();
   const newTransaction = useTransaction({
@@ -212,6 +237,32 @@ const Proposal = ({
     }
   };
 
+  const process = async () => {
+    if (!(accounts && accounts.length > 0)) {
+      return toast({
+        title: "Error",
+        description: "There is no account in wallet",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+    }
+    try {
+      await newTransaction("nftdaoModule", "processProposal", [
+        daoId,
+        id.split("-")[1],
+      ]);
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+      console.log(error);
+    }
+  };
+
   return (
     <Flex flexDir="row" flex="5" boxShadow="md" rounded="lg">
       <Flex
@@ -229,24 +280,69 @@ const Proposal = ({
       </Flex>
       <Flex flex="1">
         <Center w="full">
-          {sponsored ? (
-            <Button
-              colorScheme="black"
-              onClick={() => {
-                setIds({
-                  daoId,
-                  index,
-                });
-                openVoteModal();
-              }}
-            >
-              Vote
-            </Button>
-          ) : (
-            <Button colorScheme="black" onClick={async () => await sponsor()}>
-              Sponsor
-            </Button>
-          )}
+          {(() => {
+            if (sponsored) {
+              if (startingPeriod > currentPeriod) {
+                return (
+                  <Button
+                    colorScheme="black"
+                    onClick={() => {
+                      setIds({
+                        daoId,
+                        index,
+                      });
+                      openVoteModal();
+                    }}
+                  >
+                    Vote
+                  </Button>
+                );
+              }
+              if (
+                currentPeriod > startingPeriod &&
+                currentPeriod < endVotingPeriod
+              ) {
+                return (
+                  <>
+                    after {(endVotingPeriod - currentPeriod) * periodDuration}{" "}
+                    blocks close
+                  </>
+                );
+              }
+              if (
+                currentPeriod > endVotingPeriod &&
+                currentPeriod < endGracePeriod
+              ) {
+                return (
+                  <>
+                    Grace ends after
+                    {(endGracePeriod - currentPeriod) * periodDuration} blocks
+                  </>
+                );
+              } else {
+                if (processed) {
+                  return <>{didPass ? <>Pass</> : <>Failed</>}</>;
+                }
+                return (
+                  <Button
+                    colorScheme="black"
+                    onClick={async () => await process()}
+                  >
+                    Process
+                  </Button>
+                );
+              }
+            } else {
+              return (
+                <Button
+                  colorScheme="black"
+                  onClick={async () => await sponsor()}
+                >
+                  Sponsor
+                </Button>
+              );
+            }
+          })()}
         </Center>
       </Flex>
     </Flex>
@@ -603,6 +699,36 @@ const DAOWithProposals = ({ data, daoId }) => {
   const proposals = useProposals(data);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  const { api } = useApi();
+  const [blockNumber, setBlockNumber] = useState(0);
+  const [currentPeriod, setCurrentPeriod] = useState(0);
+
+  const bestNumber = api ? api.derive.chain.bestNumber : null;
+
+  useEffect(() => {
+    if (bestNumber) {
+      let unsubscribeAll = null;
+
+      const summoningTime = data.summoningTime;
+      const periodDuration = data.periodDuration;
+
+      bestNumber((number) => {
+        const now = number.toNumber();
+        setBlockNumber(now);
+        const period = (now - summoningTime) / periodDuration;
+        setCurrentPeriod(period);
+      })
+        .then((unsub) => {
+          unsubscribeAll = unsub;
+        })
+        .catch(console.error);
+
+      return () => unsubscribeAll && unsubscribeAll();
+    }
+  }, [bestNumber]);
+
+  console.log(proposals);
+
   return (
     <>
       <DAOInfoCard
@@ -616,21 +742,29 @@ const DAOWithProposals = ({ data, daoId }) => {
       <Stack py="10">
         <VoteModal isOpen={isOpen} onClose={onClose} ids={ids} />
 
-        {proposals.map(({ isLoading, data }, index) => (
+        {proposals.map(({ isLoading, data: proposal }, index) => (
           <Fragment key={index}>
             {isLoading ? (
               <SkeletonDAOWithProposals />
             ) : (
               <Proposal
                 daoId={daoId}
-                id={data.id}
-                index={data.index}
+                id={proposal.id}
+                index={proposal.index}
                 setIds={setIds}
-                title={data.metadata.title}
-                yes={data.yesVotes}
-                no={data.noVotes}
-                sponsored={data.sponsored}
+                title={proposal.metadata.title}
+                yes={proposal.yesVotes}
+                no={proposal.noVotes}
+                sponsored={proposal.sponsored}
                 openVoteModal={onOpen}
+                blockNumber={blockNumber}
+                currentPeriod={currentPeriod}
+                processed={proposal.processed}
+                didPass={proposal.didPass}
+                startingPeriod={Number(proposal.startingPeriod)}
+                votingPeriod={Number(data.votingPeriod)}
+                gracePeriod={Number(data.gracePeriod)}
+                periodDuration={Number(data.periodDuration)}
               />
             )}
           </Fragment>
