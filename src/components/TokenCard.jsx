@@ -23,13 +23,14 @@ export function TokenCard({
   onClick = () => {},
 }) {
   return (
-    <Center py={5} onClick={onClick}>
+    <Center py={5}>
       <LinkBox
         p={6}
         maxW={"260px"}
         bg={useColorModeValue("white", "gray.800")}
         boxShadow={"md"}
         rounded={"lg"}
+        onClick={onClick}
       >
         <Center
           as={ReachLink}

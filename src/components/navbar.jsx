@@ -340,7 +340,7 @@ function NavBar() {
               fontWeight={400}
               variant="outline"
               bg="white"
-              href="#"
+              // href="#"
               border="2px"
               borderRadius="none"
               borderColor="gray.200"

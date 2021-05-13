@@ -6,10 +6,8 @@ import {
   Center,
   Button,
   Box,
-  Avatar,
   Image,
   Divider,
-  Heading,
   Text,
   Tabs,
   TabList,
@@ -37,6 +35,8 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   Switch,
+  SkeletonCircle,
+  SkeletonText,
   useToast,
 } from "@chakra-ui/react";
 import {
@@ -47,6 +47,7 @@ import {
 } from "react-query";
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
+import Identicon from "@polkadot/react-identicon";
 
 import { SkeletonCard, TokenCard } from "../components/TokenCard";
 
@@ -56,7 +57,7 @@ import { useTransaction } from "../hooks/transaction";
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
 
-function useNFTs(accounts) {
+function useNFTs(accounts, isSub = false) {
   const address = accounts && accounts.length > 0 ? accounts[0].address : null;
 
   return useQuery(
@@ -73,6 +74,7 @@ function useNFTs(accounts) {
               owner: {
                 equalTo: "${address}"
               }
+              isSub: {equalTo: ${isSub}}
             }
           ) {
             nodes {
@@ -121,8 +123,15 @@ function useNFTMetadatas(data) {
   );
 }
 
-const Tokens = ({ accounts, setNFTMetada, openActionModal }) => {
-  const { status, data, error } = useNFTs(accounts);
+const RandomAvatar = ({ address }) => {
+  const size = 32;
+  const theme = "substrate";
+
+  return <Identicon value={address} size={size} theme={theme} />;
+};
+
+const Tokens = ({ accounts, isSub = false, setNFTMetada, openActionModal }) => {
+  const { status, data, error } = useNFTs(accounts, isSub);
 
   const nfts = useNFTMetadatas(data);
 
@@ -612,19 +621,30 @@ export default function Profile() {
     <Container py={12} maxW="container.lg">
       <QueryClientProvider client={queryClient}>
         <Flex flexDir="column" justify="center" align="center">
-          <Avatar
-            size="xl"
-            name="Dan Abrahmov"
-            src="https://bit.ly/dan-abramov"
-          />
-          <Heading align="center" fontSize="xl" mt="5">
-            Dan Abrahmov
-          </Heading>
+          {accounts && accounts.length > 0 ? (
+            <>
+              <RandomAvatar address={accounts[0].address} />
+              <Text color="gray.500" align="center" fontSize="xl" mt="5">
+                {accounts[0].address}
+              </Text>
+            </>
+          ) : (
+            <>
+              <SkeletonCircle size="10" />
+              <SkeletonText
+                align="center"
+                mt="4"
+                width="400px"
+                noOfLines={1}
+                spacing="4"
+              />
+            </>
+          )}
         </Flex>
         <Tabs isLazy colorScheme="grey">
           <TabList>
             <Tab>Tokens</Tab>
-            <Tab>Collectoins</Tab>
+            <Tab>Sub Tokens</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -633,18 +653,15 @@ export default function Profile() {
                 setNFTMetada={setNFTMetada}
                 openActionModal={onOpen}
               />
-              {/* <SimpleGrid minChildWidth="280px">
-                <TokenCard
-                  disableLink={true}
-                  onClick={(e) => {
-                    onOpen();
-                    console.log("qaq");
-                  }}
-                />
-              </SimpleGrid> */}
             </TabPanel>
             <TabPanel>
-              <p>two!</p>
+              <Tokens
+                isSub
+                accounts={accounts}
+                setNFTMetada={setNFTMetada}
+                openActionModal={onOpen}
+              />
+              {/* <p>two!</p> */}
             </TabPanel>
           </TabPanels>
         </Tabs>
