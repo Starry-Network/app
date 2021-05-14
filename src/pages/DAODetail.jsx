@@ -8,9 +8,9 @@ import {
   Heading,
   Text,
   Spacer,
-  Stack,
   HStack,
   Center,
+  Stack,
   SkeletonCircle,
   SkeletonText,
   useDisclosure,
@@ -31,6 +31,7 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  Tag,
 } from "@chakra-ui/react";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 
@@ -40,6 +41,11 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "react-query";
+
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+import relativeTime from "dayjs/plugin/relativeTime";
+
 import { useParams } from "react-router-dom";
 
 import { request, gql } from "graphql-request";
@@ -51,6 +57,9 @@ import { useTransaction } from "../hooks/transaction";
 import ipfs from "../utils/ipfs";
 
 import Collections from "../components/Collections";
+
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
@@ -183,6 +192,7 @@ const Proposal = ({
   periodDuration,
   processed,
   didPass,
+  blockTime,
 }) => {
   const [endVotingPeriod, setEndVotingPeriod] = useState(0);
   const [endGracePeriod, setEndGracePeriod] = useState(0);
@@ -256,6 +266,9 @@ const Proposal = ({
     }
   };
 
+  const getHumanizeBlockNumber = (blocks) =>
+    ` ${dayjs.duration(Math.abs(blockTime * blocks), "milliseconds").humanize()}`;
+
   return (
     <Flex flexDir="row" flex="5" boxShadow="md" rounded="lg">
       <Flex
@@ -277,39 +290,56 @@ const Proposal = ({
             if (sponsored) {
               if (startingPeriod > currentPeriod) {
                 return (
-                  <Button
-                    colorScheme="black"
-                    onClick={() => {
-                      setIds({
-                        daoId,
-                        index,
-                      });
-                      openVoteModal();
-                    }}
-                  >
-                    Vote
-                  </Button>
-                );
-              }
-              if (
-                currentPeriod > startingPeriod &&
-                currentPeriod < endVotingPeriod
-              ) {
-                return (
                   <>
-                    after {(endVotingPeriod - currentPeriod) * periodDuration}{" "}
-                    blocks close
+                    after{" "}
+                    {getHumanizeBlockNumber(
+                      (startingPeriod - currentPeriod) * periodDuration
+                    )}{" "}
+                    start
                   </>
                 );
               }
               if (
+                currentPeriod > startingPeriod &&
+                currentPeriod <= endVotingPeriod
+              ) {
+                return (
+                  <Stack>
+                    <Tag variant="outline" colorScheme="blue">
+                      after{" "}
+                      {getHumanizeBlockNumber(
+                        (endVotingPeriod - currentPeriod) * periodDuration
+                      )}
+                      close
+                    </Tag>
+                    <Button
+                      colorScheme="black"
+                      onClick={() => {
+                        setIds({
+                          daoId,
+                          index,
+                        });
+                        openVoteModal();
+                      }}
+                    >
+                      Vote
+                    </Button>
+                  </Stack>
+                );
+              }
+              if (
                 currentPeriod > endVotingPeriod &&
-                currentPeriod < endGracePeriod
+                currentPeriod <= endGracePeriod
               ) {
                 return (
                   <>
-                    Grace ends after
-                    {(endGracePeriod - currentPeriod) * periodDuration} blocks
+                    <Tag variant="outline" colorScheme="blue">
+                      Grace ends after
+                      {getHumanizeBlockNumber(
+                        // (endGracePeriod - currentPeriod) * periodDuration
+                        (endGracePeriod - currentPeriod) * periodDuration
+                      )}
+                    </Tag>
                   </>
                 );
               } else {
@@ -691,9 +721,9 @@ const DAOWithProposals = ({ data, daoId }) => {
   const proposals = useProposals(data);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const { api } = useApi();
-  const [blockNumber, setBlockNumber] = useState(0);
+  const { api, blockTime } = useApi();
   const [currentPeriod, setCurrentPeriod] = useState(0);
+  const [blockNumber, setBlockNumber] = useState(0);
 
   const bestNumber = api ? api.derive.chain.bestNumber : null;
 
@@ -735,7 +765,7 @@ const DAOWithProposals = ({ data, daoId }) => {
         {proposals.map(({ isLoading, data: proposal }, index) => (
           <Fragment key={index}>
             {isLoading ? (
-              <SkeletonDAOWithProposals />
+              <SkeletonProposal />
             ) : (
               <Proposal
                 daoId={daoId}
@@ -755,6 +785,7 @@ const DAOWithProposals = ({ data, daoId }) => {
                 votingPeriod={Number(data.votingPeriod)}
                 gracePeriod={Number(data.gracePeriod)}
                 periodDuration={Number(data.periodDuration)}
+                blockTime={blockTime}
               />
             )}
           </Fragment>

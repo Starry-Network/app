@@ -79,11 +79,8 @@ function useOrdersWithNFTs(data) {
 
 const Cards = () => {
   const { status, data, error } = useOrders();
-
-  console.log("QAQ", status, data, error);
   const orderWithNFTs = useOrdersWithNFTs(data);
 
-  console.log(orderWithNFTs);
   return (
     <>
       {status === "loading" || status === "idle" ? (

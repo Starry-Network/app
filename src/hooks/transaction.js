@@ -15,7 +15,6 @@ export const useTransaction = (dependencies) => {
                 const injector = await web3FromSource(account.meta.source);
                 setAccount(account);
                 setInjector(injector);
-                console.log("in hooks", account)
             }
         } catch (error) {
             console.log(error);

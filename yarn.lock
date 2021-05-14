@@ -5308,6 +5308,11 @@ data-urls@^2.0.0:
     whatwg-mimetype "^2.3.0"
     whatwg-url "^8.0.0"
 
+dayjs@^1.10.4:
+  version "1.10.4"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.10.4.tgz#8e544a9b8683f61783f570980a8a80eaf54ab1e2"
+  integrity sha512-RI/Hh4kqRc1UKLOAf/T5zdMMX5DQIlDxwUe3wSyMMnEbGunnpENCdbUgM+dW7kXidZqCttBrmw7BhN4TMddkCw==
+
 debug@2.6.9, debug@^2.2.0, debug@^2.3.3, debug@^2.6.0, debug@^2.6.9:
   version "2.6.9"
   resolved "https://registry.npm.taobao.org/debug/download/debug-2.6.9.tgz?cache=0&sync_timestamp=1607566551397&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fdebug%2Fdownload%2Fdebug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
@@ -9404,11 +9409,6 @@ nano-time@1.0.0:
   integrity sha1-sFVPaa2J4i0JB/ehKwmTpdlhN+8=
   dependencies:
     big-integer "^1.6.16"
-
-nanoclamp@^1.4.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/nanoclamp/-/nanoclamp-1.4.1.tgz#76f8ad333d64f984696dc0f847e6ef2fc661d3a1"
-  integrity sha512-4lvU9+xWQCpNXkMDu5YkWyNMcoBNhcR0IOplFVvn8ut/xxYQXtDSSy/x0v3lQ96zWGzXfumVWwL1H8FICk1G/A==
 
 nanoid@^3.1.12, nanoid@^3.1.20, nanoid@^3.1.22:
   version "3.1.22"

@@ -60,27 +60,7 @@ const queryClient = new QueryClient();
 function useNFTs(accounts, isSub = false, isGraph = false) {
   const address = accounts && accounts.length > 0 ? accounts[0].address : null;
 
-  //   const ql = gql`
-  //   query {
-  //     nfts(
-  //       filter: {
-  //         owner: {
-  //           equalTo: "${address}"
-  //         }
-
-  //       }
-  //     ) {
-  //       nodes {
-  //         id
-  //         endIdx
-  //         owner
-  //         isSub
-  //         uri
-  //       }
-  //     }
-  //   }
-  // `;
-  const ql2 = gql`
+  const query = gql`
     query {
       nfts(
         filter: {
@@ -100,12 +80,13 @@ function useNFTs(accounts, isSub = false, isGraph = false) {
       }
     }
   `;
+  
   return useQuery(
     "nfts",
     async () => {
       const {
         nfts: { nodes },
-      } = await request(endpoint, ql2);
+      } = await request(endpoint, query);
       console.log("nft nodes", nodes);
       return nodes;
     },
@@ -148,7 +129,13 @@ const RandomAvatar = ({ address }) => {
   return <Identicon value={address} size={size} theme={theme} />;
 };
 
-const Tokens = ({ accounts, isSub = false, isGraph = false, setNFTMetada, openActionModal }) => {
+const Tokens = ({
+  accounts,
+  isSub = false,
+  isGraph = false,
+  setNFTMetada,
+  openActionModal,
+}) => {
   const { status, data, error } = useNFTs(accounts, isSub, isGraph);
 
   const nfts = useNFTMetadatas(data);
