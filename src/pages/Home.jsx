@@ -80,7 +80,7 @@ function useOrdersWithNFTs(data) {
 const Cards = () => {
   const { status, data, error } = useOrders();
 
-  console.log(status, data, error);
+  console.log("QAQ", status, data, error);
   const orderWithNFTs = useOrdersWithNFTs(data);
 
   console.log(orderWithNFTs);

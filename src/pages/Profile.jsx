@@ -57,37 +57,55 @@ import { useTransaction } from "../hooks/transaction";
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
 
-function useNFTs(accounts, isSub = false) {
+function useNFTs(accounts, isSub = false, isGraph = false) {
   const address = accounts && accounts.length > 0 ? accounts[0].address : null;
 
+  //   const ql = gql`
+  //   query {
+  //     nfts(
+  //       filter: {
+  //         owner: {
+  //           equalTo: "${address}"
+  //         }
+
+  //       }
+  //     ) {
+  //       nodes {
+  //         id
+  //         endIdx
+  //         owner
+  //         isSub
+  //         uri
+  //       }
+  //     }
+  //   }
+  // `;
+  const ql2 = gql`
+    query {
+      nfts(
+        filter: {
+          owner: { equalTo: "5CMDe6aVXnQeAuyq2CP7Ky34wA5zucCQzgSWvESjSGAGLVAy" }
+          isSub: {equalTo: ${isSub}}
+          isRoot: { equalTo: ${isGraph} }
+          parentId: { isNull: true }
+        }
+      ) {
+        nodes {
+          id
+          endIdx
+          owner
+          isSub
+          uri
+        }
+      }
+    }
+  `;
   return useQuery(
     "nfts",
     async () => {
       const {
         nfts: { nodes },
-      } = await request(
-        endpoint,
-        gql`
-        query {
-          nfts(
-            filter: {
-              owner: {
-                equalTo: "${address}"
-              }
-              isSub: {equalTo: ${isSub}}
-            }
-          ) {
-            nodes {
-              id
-              endIdx
-              owner
-              isSub
-              uri
-            }
-          }
-        }
-      `
-      );
+      } = await request(endpoint, ql2);
       console.log("nft nodes", nodes);
       return nodes;
     },
@@ -130,8 +148,8 @@ const RandomAvatar = ({ address }) => {
   return <Identicon value={address} size={size} theme={theme} />;
 };
 
-const Tokens = ({ accounts, isSub = false, setNFTMetada, openActionModal }) => {
-  const { status, data, error } = useNFTs(accounts, isSub);
+const Tokens = ({ accounts, isSub = false, isGraph = false, setNFTMetada, openActionModal }) => {
+  const { status, data, error } = useNFTs(accounts, isSub, isGraph);
 
   const nfts = useNFTMetadatas(data);
 
@@ -645,6 +663,7 @@ export default function Profile() {
           <TabList>
             <Tab>Tokens</Tab>
             <Tab>Sub Tokens</Tab>
+            <Tab>Graph Tokens</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -657,6 +676,14 @@ export default function Profile() {
             <TabPanel>
               <Tokens
                 isSub
+                accounts={accounts}
+                setNFTMetada={setNFTMetada}
+                openActionModal={onOpen}
+              />
+            </TabPanel>
+            <TabPanel>
+              <Tokens
+                isGraph
                 accounts={accounts}
                 setNFTMetada={setNFTMetada}
                 openActionModal={onOpen}
