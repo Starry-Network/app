@@ -7,13 +7,14 @@ import {
   Stack,
   Collapse,
   Link,
+  Icon,
   Popover,
   PopoverTrigger,
   PopoverContent,
   useColorModeValue,
   useBreakpointValue,
   useDisclosure,
-  Icon,
+  useToast,
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { web3Enable, web3Accounts } from "@polkadot/extension-dapp";
@@ -221,6 +222,7 @@ const RandomAvatar = ({ address }) => {
 function NavBar() {
   const { isOpen, onToggle } = useDisclosure();
   const { accounts, setAccounts } = useApi();
+  const toast = useToast();
 
   const connectWallet = async () => {
     try {
@@ -232,7 +234,15 @@ function NavBar() {
       } else {
         setAccounts(accounts);
       }
-    } catch (error) { }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+    }
   };
 
   const getAccountName = (account) => {
