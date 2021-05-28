@@ -48,12 +48,13 @@ import {
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
 import Identicon from "@polkadot/react-identicon";
-import { ReactQueryDevtools } from 'react-query/devtools'
-
-import { SkeletonCard, TokenCard } from "../components/TokenCard";
+import { ReactQueryDevtools } from "react-query/devtools";
 
 import { useApi } from "../hooks/api";
 import { useTransaction } from "../hooks/transaction";
+
+import { SkeletonCard, TokenCard } from "../components/TokenCard";
+import WaitingDialog from "../components/WaitingDialog";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryIntervalMs = process.env.REACT_QUERY_INTERVAL_MS;
@@ -100,7 +101,6 @@ function useNFTs(accounts, isSub = false, isGraph = false) {
 }
 
 function useNFTMetadatas(data) {
-  // const enable = nfts && nfts.length >= 0;
   let nfts = data ? data : [];
   return useQueries(
     nfts.map(
@@ -120,7 +120,6 @@ function useNFTMetadatas(data) {
       },
       {
         enabled: data && data.length >= 0,
-        refetchInterval: queryIntervalMs,
       }
     )
   );
@@ -144,7 +143,7 @@ const Tokens = ({
 
   const nfts = useNFTMetadatas(data);
 
-  console.log(nfts);
+  console.log("nfts:", nfts);
   return (
     <>
       {status === "loading" || status === "idle" ? (
@@ -194,7 +193,14 @@ const Tokens = ({
   );
 };
 
-const BurnNFT = ({ showPrice, collectionId, startIdx }) => {
+const BurnNFT = ({
+  showPrice,
+  collectionId,
+  startIdx,
+  closeModal,
+  openDialog,
+  closeDialog,
+}) => {
   const { api, accounts, modules, ready } = useApi();
 
   const toast = useToast();
@@ -228,12 +234,19 @@ const BurnNFT = ({ showPrice, collectionId, startIdx }) => {
     }
 
     try {
-      await newTransaction("nftModule", "burnNonFungible", [
+      const result = await newTransaction("nftModule", "burnNonFungible", [
         collectionId,
         startIdx,
         values.amount,
       ]);
       showPrice();
+      if (result && result.success) {
+        closeModal();
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+        }, 1000 * 20);
+      }
     } catch (error) {
       toast({
         description: error.toString(),
@@ -299,7 +312,14 @@ const BurnNFT = ({ showPrice, collectionId, startIdx }) => {
   );
 };
 
-const TransferNFT = ({ showPrice, collectionId, startIdx }) => {
+const TransferNFT = ({
+  showPrice,
+  collectionId,
+  startIdx,
+  closeModal,
+  openDialog,
+  closeDialog,
+}) => {
   const { api, accounts, modules, ready } = useApi();
 
   const methods = useForm();
@@ -333,13 +353,20 @@ const TransferNFT = ({ showPrice, collectionId, startIdx }) => {
     }
 
     try {
-      await newTransaction("nftModule", "transferNonFungible", [
+      const result = await newTransaction("nftModule", "transferNonFungible", [
         values.receriver,
         collectionId,
         startIdx,
         values.amount,
       ]);
       showPrice();
+      if (result && result.success) {
+        closeModal();
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+        }, 1000 * 20);
+      }
     } catch (error) {
       toast({
         description: error.toString(),
@@ -415,7 +442,13 @@ const TransferNFT = ({ showPrice, collectionId, startIdx }) => {
   );
 };
 
-const SetPrice = ({ collectionId, startIdx }) => {
+const SetPrice = ({
+  collectionId,
+  startIdx,
+  closeModal,
+  openDialog,
+  closeDialog,
+}) => {
   const { api, accounts, modules, ready } = useApi();
 
   const [showSetPrice, setShowSetPrice] = useState(false);
@@ -456,6 +489,11 @@ const SetPrice = ({ collectionId, startIdx }) => {
       ]);
       if (result && result.success) {
         setShowSetPrice(false);
+        closeModal();
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+        }, 1000 * 20);
       }
     } catch (error) {
       toast({
@@ -533,6 +571,8 @@ const SetPrice = ({ collectionId, startIdx }) => {
 const ActionModal = ({
   isOpen,
   onClose,
+  closeDialog,
+  openDialog,
   collectionId,
   startIdx,
   name,
@@ -593,7 +633,13 @@ const ActionModal = ({
             switch (showComponent) {
               case "price":
                 return (
-                  <SetPrice collectionId={collectionId} startIdx={startIdx} />
+                  <SetPrice
+                    collectionId={collectionId}
+                    startIdx={startIdx}
+                    closeModal={onClose}
+                    closeDialog={closeDialog}
+                    openDialog={openDialog}
+                  />
                 );
               case "transfer":
                 return (
@@ -601,6 +647,9 @@ const ActionModal = ({
                     showPrice={showPrice}
                     collectionId={collectionId}
                     startIdx={startIdx}
+                    closeModal={onClose}
+                    closeDialog={closeDialog}
+                    openDialog={openDialog}
                   />
                 );
               case "burn":
@@ -609,10 +658,19 @@ const ActionModal = ({
                     showPrice={showPrice}
                     collectionId={collectionId}
                     startIdx={startIdx}
+                    closeModal={onClose}
+                    closeDialog={closeDialog}
+                    openDialog={openDialog}
                   />
                 );
               default:
-                return <SetPrice />;
+                return (
+                  <SetPrice
+                    closeModal={onClose}
+                    closeDialog={closeDialog}
+                    openDialog={openDialog}
+                  />
+                );
             }
           })()}
         </ModalBody>
@@ -632,10 +690,15 @@ export default function Profile() {
     uri: "",
   });
 
+  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const closeDialog = () => setDialogIsOpen(false);
+  const openDialog = () => setDialogIsOpen(true);
+
   return (
     <Container py={12} maxW="container.lg">
+      <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
       <QueryClientProvider client={queryClient}>
-      <ReactQueryDevtools initialIsOpen />
+        <ReactQueryDevtools initialIsOpen />
         <Flex flexDir="column" justify="center" align="center">
           {accounts && accounts.length > 0 ? (
             <>
@@ -697,6 +760,8 @@ export default function Profile() {
           startIdx={nftMetadata.startIdx}
           name={nftMetadata.name}
           uri={nftMetadata.uri}
+          closeDialog={closeDialog}
+          openDialog={openDialog}
         />
       </QueryClientProvider>
     </Container>

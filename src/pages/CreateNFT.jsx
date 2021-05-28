@@ -22,13 +22,6 @@ import {
   ModalBody,
   ModalCloseButton,
   useToast,
-  AlertDialog,
-  AlertDialogOverlay,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogBody,
-  AlertDialogFooter,
-  Spinner,
 } from "@chakra-ui/react";
 
 import { useHistory } from "react-router-dom";
@@ -42,39 +35,11 @@ import Upload from "../components/Upload";
 import ipfs from "../utils/ipfs";
 import { useTransaction } from "../hooks/transaction";
 import { useApi } from "../hooks/api";
-// import { getEvents } from "../utils/getEvents";
+
 import Collections from "../components/Collections";
+import WaitingDialog from '../components/WaitingDialog'
 
 const queryClient = new QueryClient();
-
-const WaitingDialog = ({ dialogIsOpen, closeDialog }) => {
-  return (
-    <>
-      <AlertDialog isOpen={dialogIsOpen}>
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Waiting
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Data updated in about 15~20s <Spinner />
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              {/* <Button ref={cancelRef} onClick={onClose}>
-                Cancel
-              </Button> */}
-              <Button colorScheme="black" onClick={closeDialog} ml={3}>
-                close
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-    </>
-  );
-};
 
 function CreateCollection({ isOpen, onOpen, onClose }) {
   const { api, accounts, modules, ready } = useApi();
