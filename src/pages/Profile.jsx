@@ -395,7 +395,7 @@ const TransferNFT = ({ showPrice, collectionId, startIdx }) => {
                 bg: "purple.550",
               }}
             >
-              Create
+              Transfer
             </Button>
             <Button
               type="reset"
