@@ -26,28 +26,34 @@ const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
 
 function useDaos() {
-  return useQuery("daos", async () => {
-    const {
-      daos: { nodes },
-    } = await request(
-      endpoint,
-      gql`
-        query {
-          daos {
-            nodes {
-              id
-              metadata
-              members(filter: { shares: { greaterThan: "0" } }) {
-                totalCount
+  return useQuery(
+    "daos",
+    async () => {
+      const {
+        daos: { nodes },
+      } = await request(
+        endpoint,
+        gql`
+          query {
+            daos {
+              nodes {
+                id
+                metadata
+                members(filter: { shares: { greaterThan: "0" } }) {
+                  totalCount
+                }
               }
             }
           }
-        }
-      `
-    );
-    console.log("dao nodes", nodes);
-    return nodes;
-  });
+        `
+      );
+      console.log("dao nodes", nodes);
+      return nodes;
+    },
+    {
+      refetchInterval: 1000,
+    }
+  );
 }
 
 function useDaosWithMetadata(data) {

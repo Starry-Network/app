@@ -15,28 +15,34 @@ const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
 
 function useOrders() {
-  return useQuery("orders", async () => {
-    const {
-      orders: { nodes },
-    } = await request(
-      endpoint,
-      gql`
-        query {
-          orders {
-            nodes {
-              id
-              amount
-              seller
-              nftId
-              price
+  return useQuery(
+    "orders",
+    async () => {
+      const {
+        orders: { nodes },
+      } = await request(
+        endpoint,
+        gql`
+          query {
+            orders {
+              nodes {
+                id
+                amount
+                seller
+                nftId
+                price
+              }
             }
           }
-        }
-      `
-    );
-    console.log("order nodes", nodes);
-    return nodes;
-  });
+        `
+      );
+      console.log("order nodes", nodes);
+      return nodes;
+    },
+    {
+      refetchInterval: 1000,
+    }
+  );
 }
 
 function useOrdersWithNFTs(data) {
