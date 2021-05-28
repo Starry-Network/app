@@ -28,9 +28,10 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
-  Spinner
+  Spinner,
 } from "@chakra-ui/react";
 
+import { useHistory } from "react-router-dom";
 import { useForm, FormProvider } from "react-hook-form";
 import { stringToHex } from "@polkadot/util";
 import { urlSource } from "ipfs-http-client";
@@ -53,10 +54,12 @@ const WaitingDialog = ({ dialogIsOpen, closeDialog }) => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Waiting 
+              Waiting
             </AlertDialogHeader>
 
-            <AlertDialogBody>Data updated in about 15~20s <Spinner /></AlertDialogBody>
+            <AlertDialogBody>
+              Data updated in about 15~20s <Spinner />
+            </AlertDialogBody>
 
             <AlertDialogFooter>
               {/* <Button ref={cancelRef} onClick={onClose}>
@@ -184,8 +187,8 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
         const timer = setTimeout(() => {
           closeDialog();
         }, 1000 * 20);
-    
-        return () => clearTimeout(timer);
+
+        clearTimeout(timer);
       }
 
       console.log(metadataCID);
@@ -271,6 +274,9 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
 
 export default function Create() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const closeDialog = () => setDialogIsOpen(false);
+  const openDialog = () => setDialogIsOpen(true);
 
   const methods = useForm();
   const {
@@ -286,6 +292,8 @@ export default function Create() {
 
   const { api, accounts, modules, ready } = useApi();
   const toast = useToast();
+
+  const history = useHistory();
 
   const newTransaction = useTransaction({
     api,
@@ -357,12 +365,28 @@ export default function Create() {
 
       console.log(metadataCID);
 
-      await newTransaction("nftModule", "mintNonFungible", [
+      const result = await newTransaction("nftModule", "mintNonFungible", [
         accounts[0].address,
         values.collection,
         metadataCIDHash,
         values.amount,
       ]);
+
+      if (result && result.success) {
+        openDialog();
+        toast({
+          description: "Will redirect to Profile later",
+          status: "info",
+          duration: 9000,
+          position: "top-right",
+          isClosable: true,
+        });
+        setTimeout(() => {
+          history.push("/profile");
+          closeDialog();
+        }, 1000 * 20);
+        // clearTimeout(timer);
+      }
     } catch (error) {
       toast({
         description: error.toString(),
@@ -381,6 +405,7 @@ export default function Create() {
 
   return (
     <Container py={12}>
+      <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
       <QueryClientProvider client={queryClient}>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>
