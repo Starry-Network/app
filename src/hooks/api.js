@@ -20,17 +20,18 @@ const ApiProvider = ({ children }) => {
 
     const types = {
         "TokenType": { "_enum": ["NonFungible", "Fungible"] },
-        "CollectionInfo":
-        {
+        "CollectionInfo": {
             "owner": "AccountId",
             "uri": "Vec<u8>",
             "total_supply": "u128",
             "token_type": "Option<TokenType>"
         },
-        "TokenInfo":
-            { "end_idx": "u128", "owner": "AccountId", "uri": "Vec<u8>" },
-        "DAOInfo":
-        {
+        "TokenInfo": {
+            "end_idx": "u128",
+            "owner": "AccountId",
+            "uri": "Vec<u8>"
+        },
+        "DAOInfo": {
             "account_id": "AccountId",
             "escrow_id": "AccountId",
             "details": "Vec<u8>",
@@ -42,10 +43,30 @@ const ApiProvider = ({ children }) => {
             "summoning_time": "BlockNumber",
             "dilution_bound": "u128",
             "proposal_deposit": "Balance",
-            "processing_reward": "Balance",
+            "processing_reward": "Balance"
         },
-        "Member": { "shares": "u128", "highest_index_yes_vote": "u128" },
+        "Member": {
+            "shares": "u128",
+            "highest_index_yes_vote": "u128"
+        },
+        "NonFungibleOrderInfo": {
+            "collection_id": "Hash",
+            "start_idx": "u128",
+            "seller": "AccountId",
+            "price": "Balance",
+            "amount": "u128"
+        },
+        "SemiFungiblePoolInfo": {
+            "seller": "AccountId",
+            "supply": "u128",
+            "m": "u128",
+            "sold": "u128",
+            "reverse_ratio": "u128",
+            "pool_balance": "Balance",
+            "end_time": "BlockNumber"
+        }
     }
+
 
     useAsyncEffect(async () => {
         const autoConnectMs = 2000;
