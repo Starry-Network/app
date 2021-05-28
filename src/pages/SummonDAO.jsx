@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Button,
   Container,
@@ -17,14 +18,22 @@ import { useForm, FormProvider } from "react-hook-form";
 
 import { stringToHex } from "@polkadot/util";
 import { urlSource } from "ipfs-http-client";
+import { useHistory } from "react-router-dom";
 
 import ipfs from "../utils/ipfs";
 import { useTransaction } from "../hooks/transaction";
 import { useApi } from "../hooks/api";
 
 import Upload from "../components/Upload";
+import WaitingDialog from "../components/WaitingDialog";
 
 export default function SummonDAO() {
+  const history = useHistory();
+
+  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const closeDialog = () => setDialogIsOpen(false);
+  const openDialog = () => setDialogIsOpen(true);
+
   const methods = useForm();
   const {
     register,
@@ -98,7 +107,7 @@ export default function SummonDAO() {
 
       const metadataCIDHash = stringToHex(metadataCID);
 
-      await newTransaction("nftdaoModule", "createDao", [
+      const result = await newTransaction("nftdaoModule", "createDao", [
         metadataCIDHash,
         values.periodDuration,
         values.votingPeriod,
@@ -108,6 +117,21 @@ export default function SummonDAO() {
         values.processingReward,
         values.dilutionBound,
       ]);
+
+      if (result && result.success) {
+        openDialog();
+        setTimeout(() => {
+          toast({
+            description: "Congratulations! Now preparing to jump.",
+            status: "success",
+            duration: 9000,
+            position: "top-right",
+            isClosable: true,
+          });
+          closeDialog();
+          history.push("/DAOs");
+        }, 1000 * 20);
+      }
 
       console.log(metadataCID);
     } catch (error) {
@@ -124,6 +148,7 @@ export default function SummonDAO() {
 
   return (
     <Container py={12}>
+      <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={4}>
