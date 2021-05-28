@@ -18,12 +18,41 @@ const ApiProvider = ({ children }) => {
     const [apiError, setApiError] = useState(null);
     const [blockTime, setBlockTime] = useState(DEFAULT_TIME.toNumber())
 
+    const types = {
+        "TokenType": { "_enum": ["NonFungible", "Fungible"] },
+        "CollectionInfo":
+        {
+            "owner": "AccountId",
+            "uri": "Vec<u8>",
+            "total_supply": "u128",
+            "token_type": "Option<TokenType>"
+        },
+        "TokenInfo":
+            { "end_idx": "u128", "owner": "AccountId", "uri": "Vec<u8>" },
+        "DAOInfo":
+        {
+            "account_id": "AccountId",
+            "escrow_id": "AccountId",
+            "details": "Vec<u8>",
+            "period_duration": "u128",
+            "voting_period": "u128",
+            "grace_period": "u128",
+            "metadata": "Vec<u8>",
+            "total_shares": "u128",
+            "summoning_time": "BlockNumber",
+            "dilution_bound": "u128",
+            "proposal_deposit": "Balance",
+            "processing_reward": "Balance",
+        },
+        "Member": { "shares": "u128", "highest_index_yes_vote": "u128" },
+    }
+
     useAsyncEffect(async () => {
         const autoConnectMs = 2000;
         const endpoint = process.env.REACT_APP_CHAIN_ENDPOINT;
 
         const provider = new WsProvider(endpoint, autoConnectMs);
-        const newApi = await ApiPromise.create({ provider });
+        const newApi = await ApiPromise.create({ provider, types });
         try {
             // await newApi.isReadyOrError();
             await newApi.isReadyOrError;

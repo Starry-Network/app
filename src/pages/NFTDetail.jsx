@@ -132,6 +132,7 @@ const BuyModal = ({ name, isOpen, onClose, orderId }) => {
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -142,6 +143,7 @@ const BuyModal = ({ name, isOpen, onClose, orderId }) => {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);

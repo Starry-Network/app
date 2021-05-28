@@ -29,8 +29,6 @@ import { stringToHex } from "@polkadot/util";
 import { urlSource } from "ipfs-http-client";
 
 import {
-  useMutation,
-  useQueryClient,
   QueryClient,
   QueryClientProvider,
 } from "react-query";
@@ -39,14 +37,12 @@ import Upload from "../components/Upload";
 import ipfs from "../utils/ipfs";
 import { useTransaction } from "../hooks/transaction";
 import { useApi } from "../hooks/api";
-import { getEvents } from "../utils/getEvents";
+// import { getEvents } from "../utils/getEvents";
 import Collections from "../components/Collections";
 
 const queryClient = new QueryClient();
 
 function CreateCollection({ isOpen, onOpen, onClose }) {
-  const qc = useQueryClient();
-
   const { api, accounts, modules, ready } = useApi();
   const toast = useToast();
   console.log("ready", ready);
@@ -63,35 +59,9 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
   } = methods;
-
-  const { mutate } = useMutation(
-    (newData) => {
-      console.log("new data:", newData);
-    },
-    {
-      // When mutate is called:
-      onMutate: async (newCollection) => {
-        // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-        await qc.cancelQueries("collections");
-
-        // Snapshot the previous value
-        const previousCollections = qc.getQueryData("collections");
-        console.log("previousCollections", previousCollections);
-
-        // Optimistically update to the new value
-        qc.setQueryData("collections", (old) => {
-          return [...old, newCollection];
-        });
-
-        console.log(qc.getQueryData("collections"));
-        // Return a context object with the snapshotted value
-        return { previousCollections };
-      },
-    }
-  );
 
   const onSubmit = async (values) => {
     console.log("values", values);
@@ -106,6 +76,7 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -117,6 +88,7 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
         description: "uploading image",
         status: "info",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       const fileInfo = await ipfs.add(urlSource(blobUrl));
@@ -144,6 +116,7 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
         description: "uploading metadata",
         status: "info",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
 
@@ -163,10 +136,14 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
 
       if (result && result.success) {
         console.log("tx result", result);
-        const events = await getEvents(api, result.hash, "collectionModule");
-        const newData = { label: events[0].data[1], value: events[0].data[1] };
-        console.log(newData);
-        mutate({ newData });
+        // const events = await getEvents(api, result.hash, "collectionModule");
+        // const newData = { label: events[0].data[1], value: events[0].data[1] };
+        // console.log(newData);
+        // mutate({ newData });
+        onClose();
+        reset("", {
+          keepValues: false,
+        });
       }
 
       console.log(metadataCID);
@@ -175,6 +152,7 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);
@@ -225,7 +203,6 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
                     bg: "purple.550",
                   }}
                   type="submit"
-                  isLoading={isSubmitting}
                 >
                   Create
                 </Button>
@@ -283,6 +260,7 @@ export default function Create() {
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -295,6 +273,7 @@ export default function Create() {
         description: "uploading image",
         status: "info",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       const fileInfo = await ipfs.add(urlSource(blobUrl));
@@ -322,6 +301,7 @@ export default function Create() {
         description: "uploading metadata",
         status: "info",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
 
@@ -345,6 +325,7 @@ export default function Create() {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);

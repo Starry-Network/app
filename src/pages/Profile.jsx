@@ -48,6 +48,7 @@ import {
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
 import Identicon from "@polkadot/react-identicon";
+import { ReactQueryDevtools } from 'react-query/devtools'
 
 import { SkeletonCard, TokenCard } from "../components/TokenCard";
 
@@ -55,6 +56,7 @@ import { useApi } from "../hooks/api";
 import { useTransaction } from "../hooks/transaction";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
+const queryIntervalMs = process.env.REACT_QUERY_INTERVAL_MS;
 const queryClient = new QueryClient();
 
 function useNFTs(accounts, isSub = false, isGraph = false) {
@@ -80,7 +82,7 @@ function useNFTs(accounts, isSub = false, isGraph = false) {
       }
     }
   `;
-  
+
   return useQuery(
     "nfts",
     async () => {
@@ -92,6 +94,7 @@ function useNFTs(accounts, isSub = false, isGraph = false) {
     },
     {
       enabled: !!address,
+      refetchInterval: queryIntervalMs,
     }
   );
 }
@@ -117,6 +120,7 @@ function useNFTMetadatas(data) {
       },
       {
         enabled: data && data.length >= 0,
+        refetchInterval: queryIntervalMs,
       }
     )
   );
@@ -218,6 +222,7 @@ const BurnNFT = ({ showPrice, collectionId, startIdx }) => {
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -234,6 +239,7 @@ const BurnNFT = ({ showPrice, collectionId, startIdx }) => {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);
@@ -321,6 +327,7 @@ const TransferNFT = ({ showPrice, collectionId, startIdx }) => {
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -338,6 +345,7 @@ const TransferNFT = ({ showPrice, collectionId, startIdx }) => {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);
@@ -434,6 +442,7 @@ const SetPrice = ({ collectionId, startIdx }) => {
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -453,6 +462,7 @@ const SetPrice = ({ collectionId, startIdx }) => {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);
@@ -625,6 +635,7 @@ export default function Profile() {
   return (
     <Container py={12} maxW="container.lg">
       <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen />
         <Flex flexDir="column" justify="center" align="center">
           {accounts && accounts.length > 0 ? (
             <>

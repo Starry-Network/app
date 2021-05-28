@@ -49,6 +49,7 @@ export default function GraphNFT() {
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -65,6 +66,7 @@ export default function GraphNFT() {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);

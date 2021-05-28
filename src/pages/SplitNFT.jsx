@@ -57,6 +57,7 @@ export default function SplitNFT() {
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -69,6 +70,7 @@ export default function SplitNFT() {
         description: "uploading image",
         status: "info",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       const fileInfo = await ipfs.add(urlSource(blobUrl));
@@ -96,6 +98,7 @@ export default function SplitNFT() {
         description: "uploading metadata",
         status: "info",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
 
@@ -119,6 +122,7 @@ export default function SplitNFT() {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);

@@ -240,6 +240,7 @@ function NavBar() {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }

@@ -26,9 +26,8 @@ export const useTransaction = (dependencies) => {
         return new Promise(async resolve => {
             if (ready && accounts && accounts.length > 0) {
                 console.log(ready, pallet, module, args);
-                const transferExtrinsic = api.tx[pallet][module](...args);
-                console.log("start");
                 try {
+                    const transferExtrinsic = api.tx[pallet][module](...args);
                     const unsub = await transferExtrinsic.signAndSend(
                         account.address,
                         { signer: injector.signer },
@@ -60,6 +59,7 @@ export const useTransaction = (dependencies) => {
                                                         description: `error in ${blockHash}`,
                                                         status: "error",
                                                         duration: 9000,
+                                                        position: "top-right",
                                                         isClosable: true,
                                                     });
                                                     resolve({ hash: blockHash, success: false })
@@ -69,6 +69,7 @@ export const useTransaction = (dependencies) => {
                                                         description: `error in ${blockHash}`,
                                                         status: "error",
                                                         duration: 9000,
+                                                        position: "top-right",
                                                         isClosable: true,
                                                     });
                                                     resolve({ hash: blockHash, success: false })
@@ -81,6 +82,7 @@ export const useTransaction = (dependencies) => {
                                                 description: `success in ${blockHash}`,
                                                 status: "success",
                                                 duration: 9000,
+                                                position: "top-right",
                                                 isClosable: true,
                                             });
                                             resolve({ hash: blockHash, success: true })
@@ -91,6 +93,7 @@ export const useTransaction = (dependencies) => {
                                     description: `something is wrong`,
                                     status: "error",
                                     duration: 9000,
+                                    position: "top-right",
                                     isClosable: true,
                                 });
                                 resolve({ hash: '', success: false })
@@ -103,6 +106,7 @@ export const useTransaction = (dependencies) => {
                         description: error.toString(),
                         status: "error",
                         duration: 9000,
+                        position: "top-right",
                         isClosable: true,
                     });
                 }
@@ -111,6 +115,7 @@ export const useTransaction = (dependencies) => {
                     description: `api not ready`,
                     status: "error",
                     duration: 9000,
+                    position: "top-right",
                     isClosable: true,
                 });
                 resolve({ hash: '', success: false })

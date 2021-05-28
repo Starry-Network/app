@@ -221,6 +221,7 @@ const Proposal = ({
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -234,6 +235,7 @@ const Proposal = ({
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);
@@ -247,6 +249,7 @@ const Proposal = ({
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -260,6 +263,7 @@ const Proposal = ({
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);
@@ -449,6 +453,7 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
         description: "There is no account in wallet",
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
     }
@@ -468,6 +473,7 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
         description: "uploading metadata",
         status: "info",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
 
@@ -503,6 +509,7 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);
@@ -664,6 +671,7 @@ const VoteModal = ({ isOpen, onClose, ids }) => {
         description: error.toString(),
         status: "error",
         duration: 9000,
+        position: "top-right",
         isClosable: true,
       });
       console.log(error);
