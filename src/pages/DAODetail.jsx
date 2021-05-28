@@ -57,6 +57,7 @@ import { useTransaction } from "../hooks/transaction";
 import ipfs from "../utils/ipfs";
 
 import Collections from "../components/Collections";
+import WaitingDialog from "../components/WaitingDialog";
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -138,6 +139,7 @@ function useProposals(data) {
       },
       {
         enabled: data && data.length >= 0,
+        refetchInterval: 1000,
       }
     )
   );
@@ -193,6 +195,8 @@ const Proposal = ({
   processed,
   didPass,
   blockTime,
+  openDialog,
+  closeDialog,
 }) => {
   const [endVotingPeriod, setEndVotingPeriod] = useState(0);
   const [endGracePeriod, setEndGracePeriod] = useState(0);
@@ -226,10 +230,16 @@ const Proposal = ({
       });
     }
     try {
-      await newTransaction("nftdaoModule", "sponsorProposal", [
+      const result = await newTransaction("nftdaoModule", "sponsorProposal", [
         daoId,
         id.split("-")[1],
       ]);
+      if (result && result.success) {
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+        }, 1000 * 20);
+      }
     } catch (error) {
       toast({
         description: error.toString(),
@@ -254,10 +264,16 @@ const Proposal = ({
       });
     }
     try {
-      await newTransaction("nftdaoModule", "processProposal", [
+      const result = await newTransaction("nftdaoModule", "processProposal", [
         daoId,
         id.split("-")[1],
       ]);
+      if (result && result.success) {
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+        }, 1000 * 20);
+      }
     } catch (error) {
       toast({
         description: error.toString(),
@@ -271,7 +287,9 @@ const Proposal = ({
   };
 
   const getHumanizeBlockNumber = (blocks) =>
-    ` ${dayjs.duration(Math.abs(blockTime * blocks), "milliseconds").humanize()}`;
+    ` ${dayjs
+      .duration(Math.abs(blockTime * blocks), "milliseconds")
+      .humanize()}`;
 
   return (
     <Flex flexDir="row" flex="5" boxShadow="md" rounded="lg">
@@ -383,6 +401,8 @@ const DAOInfoCard = ({
   asset,
   members = "1",
   shares = "1",
+  openDialog,
+  closeDialog,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -421,14 +441,21 @@ const DAOInfoCard = ({
           </Flex>
         </Flex>
       </Flex>
-      <NewProposal isOpen={isOpen} onClose={onClose} daoId={id} />
+      <NewProposal
+        isOpen={isOpen}
+        onClose={onClose}
+        daoId={id}
+        openDialog={openDialog}
+        closeDialog={closeDialog}
+      />
     </Box>
   );
 };
 
-const NewProposal = ({ isOpen, onClose, daoId }) => {
+const NewProposal = ({ isOpen, onClose, daoId, openDialog, closeDialog }) => {
   const { api, accounts, modules, ready } = useApi();
   const toast = useToast();
+
   const newTransaction = useTransaction({
     api,
     accounts,
@@ -493,7 +520,7 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
         ? [clonedValues.collection, clonedValues.startIdx]
         : null;
 
-      await newTransaction("nftdaoModule", "submitProposal", [
+      const result = await newTransaction("nftdaoModule", "submitProposal", [
         daoId,
         clonedValues.applicant,
         clonedValues.shares,
@@ -502,6 +529,14 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
         metadataCIDHash,
         clonedValues.action,
       ]);
+
+      if (result && result.success) {
+        onClose();
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+        }, 1000 * 20);
+      }
 
       console.log(metadataCID);
     } catch (error) {
@@ -647,7 +682,7 @@ const NewProposal = ({ isOpen, onClose, daoId }) => {
   );
 };
 
-const VoteModal = ({ isOpen, onClose, ids }) => {
+const VoteModal = ({ isOpen, onClose, ids, openDialog, closeDialog }) => {
   const { api, accounts, modules, ready } = useApi();
   const toast = useToast();
   const newTransaction = useTransaction({
@@ -661,11 +696,19 @@ const VoteModal = ({ isOpen, onClose, ids }) => {
   const vote = async (yes) => {
     console.log(ids);
     try {
-      await newTransaction("nftdaoModule", "voteProposal", [
+      const result = await newTransaction("nftdaoModule", "voteProposal", [
         ids.daoId,
         ids.index,
         yes,
       ]);
+
+      if (result && result.success) {
+        onClose();
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+        }, 1000 * 20);
+      }
     } catch (error) {
       toast({
         description: error.toString(),
@@ -735,6 +778,10 @@ const DAOWithProposals = ({ data, daoId }) => {
 
   const bestNumber = api ? api.derive.chain.bestNumber : null;
 
+  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const closeDialog = () => setDialogIsOpen(false);
+  const openDialog = () => setDialogIsOpen(true);
+
   useEffect(() => {
     if (bestNumber) {
       let unsubscribeAll = null;
@@ -759,6 +806,8 @@ const DAOWithProposals = ({ data, daoId }) => {
 
   return (
     <>
+      <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
+
       <DAOInfoCard
         id={daoId}
         name={data.metadata.name}
@@ -766,9 +815,17 @@ const DAOWithProposals = ({ data, daoId }) => {
         asset={data.metadata.asset}
         members={data.members.totalCount}
         shares={data.totalShares}
+        openDialog={openDialog}
+        closeDialog={closeDialog}
       />
       <Stack py="10">
-        <VoteModal isOpen={isOpen} onClose={onClose} ids={ids} />
+        <VoteModal
+          isOpen={isOpen}
+          onClose={onClose}
+          ids={ids}
+          openDialog={openDialog}
+          closeDialog={closeDialog}
+        />
 
         {proposals.map(({ isLoading, data: proposal }, index) => (
           <Fragment key={index}>
@@ -794,6 +851,8 @@ const DAOWithProposals = ({ data, daoId }) => {
                 gracePeriod={Number(data.gracePeriod)}
                 periodDuration={Number(data.periodDuration)}
                 blockTime={blockTime}
+                openDialog={openDialog}
+                closeDialog={closeDialog}
               />
             )}
           </Fragment>

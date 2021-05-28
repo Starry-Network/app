@@ -20,7 +20,7 @@ const WaitingDialog = ({ dialogIsOpen, closeDialog }) => {
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              Data updated in about 15~20s <Spinner />
+              Data updated in about 15~20s. If there is no change, you can refresh the page <Spinner />
             </AlertDialogBody>
 
             <AlertDialogFooter>
