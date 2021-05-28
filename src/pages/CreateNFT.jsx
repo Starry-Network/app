@@ -149,11 +149,9 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
         reset("", {
           keepValues: false,
         });
-        const timer = setTimeout(() => {
+        setTimeout(() => {
           closeDialog();
         }, 1000 * 20);
-
-        clearTimeout(timer);
       }
 
       console.log(metadataCID);

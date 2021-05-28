@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Container,
   FormControl,
@@ -26,11 +27,16 @@ import ipfs from "../utils/ipfs";
 
 import Collections from "../components/Collections";
 import Upload from "../components/Upload";
+import WaitingDialog from "../components/WaitingDialog";
 
 const queryClient = new QueryClient();
 
 export default function SplitNFT() {
   const { api, accounts, modules, ready } = useApi();
+
+  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const closeDialog = () => setDialogIsOpen(false);
+  const openDialog = () => setDialogIsOpen(true);
 
   const methods = useForm();
 
@@ -111,12 +117,27 @@ export default function SplitNFT() {
 
       console.log(metadataCID);
 
-      await newTransaction("subNftModule", "mintNonFungible", [
+      const result = await newTransaction("subNftModule", "mintNonFungible", [
         accounts[0].address,
         values.subCollection,
         metadataCIDHash,
         values.amount,
       ]);
+
+      if (result && result.success) {
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+          toast({
+            description:
+              "Congratulations! You can find them in your Profile page",
+            status: "success",
+            duration: 9000,
+            position: "top-right",
+            isClosable: true,
+          });
+        }, 1000 * 20);
+      }
     } catch (error) {
       toast({
         description: error.toString(),
@@ -131,6 +152,8 @@ export default function SplitNFT() {
 
   return (
     <Container py={12}>
+      <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
+
       <QueryClientProvider client={queryClient}>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>

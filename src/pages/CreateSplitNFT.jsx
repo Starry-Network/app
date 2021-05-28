@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Container,
   FormControl,
@@ -21,6 +22,7 @@ import { request, gql } from "graphql-request";
 import { useApi } from "../hooks/api";
 import { useTransaction } from "../hooks/transaction";
 import Collections from "../components/Collections";
+import WaitingDialog from "../components/WaitingDialog";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
@@ -28,11 +30,15 @@ const queryClient = new QueryClient();
 export default function SplitNFT() {
   const { api, accounts, modules, ready } = useApi();
 
+  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const closeDialog = () => setDialogIsOpen(false);
+  const openDialog = () => setDialogIsOpen(true);
+
   const methods = useForm();
   const {
     register,
     handleSubmit,
-    formState: { errors,  },
+    formState: { errors },
   } = methods;
 
   const toast = useToast();
@@ -93,11 +99,24 @@ export default function SplitNFT() {
     }
 
     try {
-      await newTransaction("subNftModule", "create", [
+      const result = await newTransaction("subNftModule", "create", [
         values.collection,
         values.startIdx,
         false,
       ]);
+      if (result && result.success) {
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+          toast({
+            description: "You can split it now",
+            status: "success",
+            duration: 9000,
+            position: "top-right",
+            isClosable: true,
+          });
+        }, 1000 * 20);
+      }
     } catch (error) {
       toast({
         description: error.toString(),
@@ -112,6 +131,7 @@ export default function SplitNFT() {
 
   return (
     <Container py={12}>
+      <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
       <QueryClientProvider client={queryClient}>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>
