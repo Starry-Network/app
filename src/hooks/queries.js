@@ -36,7 +36,7 @@ export function useCollections(accounts, isSub = false) {
       const data = nodes.map((collection) => {
         return { label: collection.id, value: collection.id };
       });
-      // console.log(nodes);
+      console.log("collections count:", nodes.length);
       return data;
     },
     {

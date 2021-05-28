@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   FormControl,
@@ -22,16 +22,20 @@ import {
   ModalBody,
   ModalCloseButton,
   useToast,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
+  Spinner
 } from "@chakra-ui/react";
 
 import { useForm, FormProvider } from "react-hook-form";
 import { stringToHex } from "@polkadot/util";
 import { urlSource } from "ipfs-http-client";
 
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "react-query";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 import Upload from "../components/Upload";
 import ipfs from "../utils/ipfs";
@@ -42,10 +46,41 @@ import Collections from "../components/Collections";
 
 const queryClient = new QueryClient();
 
+const WaitingDialog = ({ dialogIsOpen, closeDialog }) => {
+  return (
+    <>
+      <AlertDialog isOpen={dialogIsOpen}>
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Waiting 
+            </AlertDialogHeader>
+
+            <AlertDialogBody>Data updated in about 15~20s <Spinner /></AlertDialogBody>
+
+            <AlertDialogFooter>
+              {/* <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button> */}
+              <Button colorScheme="black" onClick={closeDialog} ml={3}>
+                close
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </>
+  );
+};
+
 function CreateCollection({ isOpen, onOpen, onClose }) {
   const { api, accounts, modules, ready } = useApi();
   const toast = useToast();
   console.log("ready", ready);
+
+  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const closeDialog = () => setDialogIsOpen(false);
+  const openDialog = () => setDialogIsOpen(true);
 
   const newTransaction = useTransaction({
     api,
@@ -140,10 +175,17 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
         // const newData = { label: events[0].data[1], value: events[0].data[1] };
         // console.log(newData);
         // mutate({ newData });
+        //
         onClose();
+        openDialog();
         reset("", {
           keepValues: false,
         });
+        const timer = setTimeout(() => {
+          closeDialog();
+        }, 1000 * 20);
+    
+        return () => clearTimeout(timer);
       }
 
       console.log(metadataCID);
@@ -161,6 +203,7 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
 
   return (
     <>
+      <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <FormProvider {...methods}>
