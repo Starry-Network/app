@@ -111,7 +111,7 @@ export default function SplitNFT() {
 
       console.log(metadataCID);
 
-      await newTransaction("subModule", "mintNonFungible", [
+      await newTransaction("subNftModule", "mintNonFungible", [
         accounts[0].address,
         values.subCollection,
         metadataCIDHash,

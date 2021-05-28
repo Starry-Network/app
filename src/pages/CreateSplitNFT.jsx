@@ -93,7 +93,7 @@ export default function SplitNFT() {
     }
 
     try {
-      await newTransaction("subModule", "create", [
+      await newTransaction("subNftModule", "create", [
         values.collection,
         values.startIdx,
         false,
