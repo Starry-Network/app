@@ -38,6 +38,7 @@ import {
   SkeletonCircle,
   SkeletonText,
   useToast,
+  Link,
 } from "@chakra-ui/react";
 import {
   useQuery,
@@ -48,7 +49,7 @@ import {
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
 import Identicon from "@polkadot/react-identicon";
-import { ReactQueryDevtools } from "react-query/devtools";
+import { Link as ReachLink } from "react-router-dom";
 
 import { useApi } from "../hooks/api";
 import { useTransaction } from "../hooks/transaction";
@@ -57,7 +58,7 @@ import { SkeletonCard, TokenCard } from "../components/TokenCard";
 import WaitingDialog from "../components/WaitingDialog";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-const queryIntervalMs = process.env.REACT_QUERY_INTERVAL_MS;
+// const queryIntervalMs = process.env.REACT_QUERY_INTERVAL_MS;
 const queryClient = new QueryClient();
 
 function useNFTs(accounts, isSub = false, isGraph = false) {
@@ -95,7 +96,8 @@ function useNFTs(accounts, isSub = false, isGraph = false) {
     },
     {
       enabled: !!address,
-      refetchInterval: queryIntervalMs,
+      // refetchInterval: queryIntervalMs,
+      refetchInterval: 1000,
     }
   );
 }
@@ -588,7 +590,15 @@ const ActionModal = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{name}</ModalHeader>
+        <ModalHeader>
+          <Link
+            as={ReachLink}
+            textDecoration="underline"
+            to={`NFTDetail/${collectionId}-${startIdx}/null`}
+          >
+            {name}
+          </Link>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <Center mb="10">
@@ -698,7 +708,6 @@ export default function Profile() {
     <Container py={12} maxW="container.lg">
       <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
       <QueryClientProvider client={queryClient}>
-        <ReactQueryDevtools initialIsOpen />
         <Flex flexDir="column" justify="center" align="center">
           {accounts && accounts.length > 0 ? (
             <>
