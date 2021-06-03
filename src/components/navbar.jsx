@@ -33,17 +33,17 @@ const NAV_ITEMS = [
   },
   {
     label: "Split NFT",
-    href: "/#",
-    children: [
-      {
-        label: "Create",
-        href: "/createSplitNFT",
-      },
-      {
-        label: "Split",
-        href: "/splitNFT",
-      },
-    ],
+    href: "/splitNFT",
+    // children: [
+    //   {
+    //     label: "Create",
+    //     href: "/createSplitNFT",
+    //   },
+    //   {
+    //     label: "Split",
+    //     href: "/splitNFT",
+    //   },
+    // ],
   },
   {
     label: "DAO",

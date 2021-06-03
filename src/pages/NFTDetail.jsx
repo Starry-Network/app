@@ -38,6 +38,7 @@ import {
 } from "@chakra-ui/react";
 
 import { useParams } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 import { useQuery, QueryClient, QueryClientProvider } from "react-query";
 import { request, gql } from "graphql-request";
@@ -116,6 +117,7 @@ const BuyModal = ({ name, isOpen, onClose, orderId }) => {
   const { api, accounts, modules, ready } = useApi();
 
   const toast = useToast();
+  const history = useHistory();
 
   const newTransaction = useTransaction({
     api,
@@ -153,6 +155,7 @@ const BuyModal = ({ name, isOpen, onClose, orderId }) => {
   const onSubmit = async (values) => {
     console.log(values);
     await buy(orderId, values.amount);
+    history.push("/profile");
   };
 
   return (

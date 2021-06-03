@@ -12,10 +12,20 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   FormErrorMessage,
+  FormHelperText,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
   useToast,
 } from "@chakra-ui/react";
 
+import { useHistory } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { request, gql } from "graphql-request";
 
 import { useForm, FormProvider } from "react-hook-form";
 import { stringToHex } from "@polkadot/util";
@@ -29,7 +39,176 @@ import Collections from "../components/Collections";
 import Upload from "../components/Upload";
 import WaitingDialog from "../components/WaitingDialog";
 
+const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 const queryClient = new QueryClient();
+
+function CreateSubCollection({ isOpen, onOpen, onClose }) {
+  const { api, accounts, modules, ready } = useApi();
+  const toast = useToast();
+  console.log("ready", ready);
+
+  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const closeDialog = () => setDialogIsOpen(false);
+  const openDialog = () => setDialogIsOpen(true);
+
+  const newTransaction = useTransaction({
+    api,
+    accounts,
+    ready,
+    modules,
+    toast,
+  });
+
+  const methods = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = methods;
+
+  const onSubmit = async (values) => {
+    if (!(accounts && accounts.length > 0)) {
+      return toast({
+        title: "Error",
+        description: "There is no account in wallet",
+        status: "error",
+        duration: 9000,
+        position: "top-right",
+        isClosable: true,
+      });
+    }
+
+    // const palletId = "5EYCAe5cvWwuASaBGzVg1qYZsaxUYejHQf9rqLHKCEeTfbA8";
+    const nftId = `${values.collection}-${values.startIdx}`;
+    const { nft } = await request(
+      endpoint,
+      gql`
+          query {
+            nft(
+              id: "${nftId}"
+            ) {
+              owner
+            }
+          }
+        `
+    );
+    if (!nft) {
+      return toast({
+        title: "Error",
+        description: "can't get nft",
+        status: "error",
+        duration: 9000,
+        position: "top-right",
+        isClosable: true,
+      });
+    }
+    if (nft.owner !== accounts[0].address) {
+      return toast({
+        title: "Error",
+        description: "have no permission",
+        status: "error",
+        duration: 9000,
+        position: "top-right",
+        isClosable: true,
+      });
+    }
+
+    try {
+      const result = await newTransaction("subNftModule", "create", [
+        values.collection,
+        values.startIdx,
+        false,
+      ]);
+      if (result && result.success) {
+        openDialog();
+        setTimeout(() => {
+          closeDialog();
+          reset("", {
+            keepValues: false,
+          });
+          onClose();
+          toast({
+            description: "You can split it now",
+            status: "success",
+            duration: 9000,
+            position: "top-right",
+            isClosable: true,
+          });
+        }, 1000 * 20);
+      }
+    } catch (error) {
+      toast({
+        description: error.toString(),
+        status: "error",
+        duration: 9000,
+        position: "top-right",
+        isClosable: true,
+      });
+      console.log(error);
+    }
+  };
+
+  return (
+    <>
+      <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        {/* <QueryClientProvider client={queryClient}> */}
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <ModalContent>
+              <ModalHeader>Create collection</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody pb={6}>
+                <Stack spacing={4}>
+                  <FormControl isInvalid={errors.collection}>
+                    <FormLabel htmlFor="collection">Collection</FormLabel>
+                    <Collections
+                      accounts={accounts}
+                      {...register("collection", { required: true })}
+                    />
+                    <FormErrorMessage>
+                      {errors.collection && "Collection is required"}
+                    </FormErrorMessage>
+                  </FormControl>
+                  <FormControl isInvalid={errors.startIdx}>
+                    <FormLabel>NFT Start Idx</FormLabel>
+                    {/* <Input name="description" placeholder="description" /> */}
+                    <NumberInput defaultValue={0} min={0}>
+                      <NumberInputField
+                        {...register("startIdx", { required: true, min: 0 })}
+                      />
+                      <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                      </NumberInputStepper>
+                    </NumberInput>
+                    <FormErrorMessage>
+                      {errors.startIdx && "startIdx is required"}
+                    </FormErrorMessage>
+                  </FormControl>
+
+                  <Button
+                    size="md"
+                    bg="gray.900"
+                    color="white"
+                    _hover={{
+                      bg: "purple.550",
+                    }}
+                    type="submit"
+                  >
+                    Split
+                  </Button>
+                </Stack>
+              </ModalBody>
+            </ModalContent>
+          </form>
+        </FormProvider>
+      </Modal>
+    </>
+  );
+}
 
 export default function SplitNFT() {
   const { api, accounts, modules, ready } = useApi();
@@ -38,6 +217,7 @@ export default function SplitNFT() {
   const closeDialog = () => setDialogIsOpen(false);
   const openDialog = () => setDialogIsOpen(true);
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const methods = useForm();
 
   const {
@@ -47,6 +227,8 @@ export default function SplitNFT() {
   } = methods;
 
   const toast = useToast();
+  const history = useHistory();
+
   const newTransaction = useTransaction({
     api,
     accounts,
@@ -136,6 +318,7 @@ export default function SplitNFT() {
             position: "top-right",
             isClosable: true,
           });
+          history.push("/profile");
         }, 1000 * 20);
       }
     } catch (error) {
@@ -168,6 +351,16 @@ export default function SplitNFT() {
                 <FormErrorMessage>
                   {errors.subCollection && "Sub Collection is required"}
                 </FormErrorMessage>
+                <FormHelperText
+                  textDecoration="underline"
+                  color={"gray.900"}
+                  onClick={onOpen}
+                  _hover={{
+                    cursor: "pointer",
+                  }}
+                >
+                  Have no Sub Collection? Click here to create one
+                </FormHelperText>
               </FormControl>
 
               <FormControl isInvalid={errors.amount}>
@@ -213,7 +406,6 @@ export default function SplitNFT() {
                   {...register("description")}
                 />
               </FormControl>
-
               <Button
                 size="md"
                 bg="gray.900"
@@ -228,6 +420,11 @@ export default function SplitNFT() {
             </Stack>
           </form>
         </FormProvider>
+        <CreateSubCollection
+          isOpen={isOpen}
+          onOpen={onOpen}
+          onClose={onClose}
+        />
       </QueryClientProvider>
     </Container>
   );
