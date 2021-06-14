@@ -24,7 +24,6 @@ import {
 } from "@chakra-ui/react";
 
 import { useHistory } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "react-query";
 import { request, gql } from "graphql-request";
 
 import { useForm, FormProvider } from "react-hook-form";
@@ -40,7 +39,7 @@ import Upload from "../components/Upload";
 import WaitingDialog from "../components/WaitingDialog";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-const queryClient = new QueryClient();
+// const queryClient = new QueryClient();
 
 function CreateSubCollection({ isOpen, onOpen, onClose }) {
   const { api, accounts, modules, ready } = useApi();
@@ -78,8 +77,7 @@ function CreateSubCollection({ isOpen, onOpen, onClose }) {
         isClosable: true,
       });
     }
-
-    // const palletId = "5EYCAe5cvWwuASaBGzVg1qYZsaxUYejHQf9rqLHKCEeTfbA8";
+    
     const nftId = `${values.collection}-${values.startIdx}`;
     const { nft } = await request(
       endpoint,
@@ -154,7 +152,6 @@ function CreateSubCollection({ isOpen, onOpen, onClose }) {
       <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        {/* <QueryClientProvider client={queryClient}> */}
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <ModalContent>
@@ -337,95 +334,89 @@ export default function SplitNFT() {
     <Container py={12}>
       <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
 
-      <QueryClientProvider client={queryClient}>
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Stack spacing={4}>
-              <FormControl isInvalid={errors.subCollection}>
-                <FormLabel htmlFor="collection">Sub Collection</FormLabel>
-                <Collections
-                  accounts={accounts}
-                  {...register("subCollection", { required: true })}
-                  isSub={true}
-                />
-                <FormErrorMessage>
-                  {errors.subCollection && "Sub Collection is required"}
-                </FormErrorMessage>
-                <FormHelperText
-                  textDecoration="underline"
-                  color={"gray.900"}
-                  onClick={onOpen}
-                  _hover={{
-                    cursor: "pointer",
-                  }}
-                >
-                  Have no Sub Collection? Click here to create one
-                </FormHelperText>
-              </FormControl>
-
-              <FormControl isInvalid={errors.amount}>
-                <FormLabel>Number of sub-tokens</FormLabel>
-                <NumberInput defaultValue={1} min={1}>
-                  <NumberInputField
-                    {...register("amount", { required: true, min: 1 })}
-                  />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-                <FormErrorMessage>
-                  {errors.amount && "amount is required"}
-                </FormErrorMessage>
-              </FormControl>
-
-              <FormControl isInvalid={errors.file}>
-                <FormLabel htmlFor="file">Upload cover</FormLabel>
-                <Upload label="file" />
-                <FormErrorMessage>
-                  {errors.file && "File is required"}
-                </FormErrorMessage>
-              </FormControl>
-              <FormControl isInvalid={errors.name}>
-                <FormLabel htmlFor="name">Name</FormLabel>
-                <Input
-                  name="name"
-                  placeholder="Such as: #2 of sub nft"
-                  {...register("name", { required: true })}
-                />
-                <FormErrorMessage>
-                  {errors.name && "Name is required"}
-                </FormErrorMessage>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel htmlFor="description">Description</FormLabel>
-                <Input
-                  name="description"
-                  placeholder="Part of xxx"
-                  {...register("description")}
-                />
-              </FormControl>
-              <Button
-                size="md"
-                bg="gray.900"
-                color="white"
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Stack spacing={4}>
+            <FormControl isInvalid={errors.subCollection}>
+              <FormLabel htmlFor="collection">Sub Collection</FormLabel>
+              <Collections
+                accounts={accounts}
+                {...register("subCollection", { required: true })}
+                isSub={true}
+              />
+              <FormErrorMessage>
+                {errors.subCollection && "Sub Collection is required"}
+              </FormErrorMessage>
+              <FormHelperText
+                textDecoration="underline"
+                color={"gray.900"}
+                onClick={onOpen}
                 _hover={{
-                  bg: "purple.550",
+                  cursor: "pointer",
                 }}
-                type="submit"
               >
-                Split
-              </Button>
-            </Stack>
-          </form>
-        </FormProvider>
-        <CreateSubCollection
-          isOpen={isOpen}
-          onOpen={onOpen}
-          onClose={onClose}
-        />
-      </QueryClientProvider>
+                Have no Sub Collection? Click here to create one
+              </FormHelperText>
+            </FormControl>
+
+            <FormControl isInvalid={errors.amount}>
+              <FormLabel>Number of sub-tokens</FormLabel>
+              <NumberInput defaultValue={1} min={1}>
+                <NumberInputField
+                  {...register("amount", { required: true, min: 1 })}
+                />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
+              <FormErrorMessage>
+                {errors.amount && "amount is required"}
+              </FormErrorMessage>
+            </FormControl>
+
+            <FormControl isInvalid={errors.file}>
+              <FormLabel htmlFor="file">Upload cover</FormLabel>
+              <Upload label="file" />
+              <FormErrorMessage>
+                {errors.file && "File is required"}
+              </FormErrorMessage>
+            </FormControl>
+            <FormControl isInvalid={errors.name}>
+              <FormLabel htmlFor="name">Name</FormLabel>
+              <Input
+                name="name"
+                placeholder="Such as: #2 of sub nft"
+                {...register("name", { required: true })}
+              />
+              <FormErrorMessage>
+                {errors.name && "Name is required"}
+              </FormErrorMessage>
+            </FormControl>
+
+            <FormControl>
+              <FormLabel htmlFor="description">Description</FormLabel>
+              <Input
+                name="description"
+                placeholder="Part of xxx"
+                {...register("description")}
+              />
+            </FormControl>
+            <Button
+              size="md"
+              bg="gray.900"
+              color="white"
+              _hover={{
+                bg: "purple.550",
+              }}
+              type="submit"
+            >
+              Split
+            </Button>
+          </Stack>
+        </form>
+      </FormProvider>
+      <CreateSubCollection isOpen={isOpen} onOpen={onOpen} onClose={onClose} />
     </Container>
   );
 }

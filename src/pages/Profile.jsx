@@ -43,8 +43,6 @@ import {
 import {
   useQuery,
   useQueries,
-  QueryClient,
-  QueryClientProvider,
 } from "react-query";
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
@@ -59,7 +57,6 @@ import WaitingDialog from "../components/WaitingDialog";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
 // const queryIntervalMs = process.env.REACT_QUERY_INTERVAL_MS;
-const queryClient = new QueryClient();
 
 function useNFTs(accounts, isSub = false, isGraph = false) {
   const address = accounts && accounts.length > 0 ? accounts[0].address : null;
@@ -707,7 +704,6 @@ export default function Profile() {
   return (
     <Container py={12} maxW="container.lg">
       <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
-      <QueryClientProvider client={queryClient}>
         <Flex flexDir="column" justify="center" align="center">
           {accounts && accounts.length > 0 ? (
             <>
@@ -772,7 +768,6 @@ export default function Profile() {
           closeDialog={closeDialog}
           openDialog={openDialog}
         />
-      </QueryClientProvider>
     </Container>
   );
 }

@@ -1,18 +1,12 @@
 import { Fragment } from "react";
 import { SimpleGrid, Spinner, Text, Center } from "@chakra-ui/react";
 
-import {
-  useQuery,
-  useQueries,
-  QueryClient,
-  QueryClientProvider,
-} from "react-query";
+import { useQuery, useQueries } from "react-query";
 import { request, gql } from "graphql-request";
 
 import { TokenCard, SkeletonCard } from "../components/TokenCard";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-const queryClient = new QueryClient();
 
 function useOrders() {
   return useQuery(
@@ -113,7 +107,6 @@ const Cards = () => {
                       amount={data.order.amount}
                       price={data.order.price}
                       href={`/NFTDetail/${data.order.nftId}/${data.order.id}`}
-                      // href={`/NFTDetail/${data.order.nftId}/null`}
                     />
                   </>
                 )}
@@ -127,11 +120,7 @@ const Cards = () => {
 };
 
 function Home() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Cards />
-    </QueryClientProvider>
-  );
+  return <Cards />;
 }
 
 export default Home;

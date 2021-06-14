@@ -14,8 +14,6 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { QueryClient, QueryClientProvider } from "react-query";
-
 import { useForm, FormProvider } from "react-hook-form";
 import { request, gql } from "graphql-request";
 
@@ -25,7 +23,6 @@ import Collections from "../components/Collections";
 import WaitingDialog from "../components/WaitingDialog";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-const queryClient = new QueryClient();
 
 export default function SplitNFT() {
   const { api, accounts, modules, ready } = useApi();
@@ -132,52 +129,50 @@ export default function SplitNFT() {
   return (
     <Container py={12}>
       <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
-      <QueryClientProvider client={queryClient}>
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Stack spacing={4}>
-              <FormControl isInvalid={errors.collection}>
-                <FormLabel htmlFor="collection">Collection</FormLabel>
-                <Collections
-                  accounts={accounts}
-                  {...register("collection", { required: true })}
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Stack spacing={4}>
+            <FormControl isInvalid={errors.collection}>
+              <FormLabel htmlFor="collection">Collection</FormLabel>
+              <Collections
+                accounts={accounts}
+                {...register("collection", { required: true })}
+              />
+              <FormErrorMessage>
+                {errors.collection && "Collection is required"}
+              </FormErrorMessage>
+            </FormControl>
+            <FormControl isInvalid={errors.startIdx}>
+              <FormLabel>NFT Start Idx</FormLabel>
+              {/* <Input name="description" placeholder="description" /> */}
+              <NumberInput defaultValue={0} min={0}>
+                <NumberInputField
+                  {...register("startIdx", { required: true, min: 0 })}
                 />
-                <FormErrorMessage>
-                  {errors.collection && "Collection is required"}
-                </FormErrorMessage>
-              </FormControl>
-              <FormControl isInvalid={errors.startIdx}>
-                <FormLabel>NFT Start Idx</FormLabel>
-                {/* <Input name="description" placeholder="description" /> */}
-                <NumberInput defaultValue={0} min={0}>
-                  <NumberInputField
-                    {...register("startIdx", { required: true, min: 0 })}
-                  />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-                <FormErrorMessage>
-                  {errors.startIdx && "startIdx is required"}
-                </FormErrorMessage>
-              </FormControl>
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
+              <FormErrorMessage>
+                {errors.startIdx && "startIdx is required"}
+              </FormErrorMessage>
+            </FormControl>
 
-              <Button
-                size="md"
-                bg="gray.900"
-                color="white"
-                _hover={{
-                  bg: "purple.550",
-                }}
-                type="submit"
-              >
-                Split
-              </Button>
-            </Stack>
-          </form>
-        </FormProvider>
-      </QueryClientProvider>
+            <Button
+              size="md"
+              bg="gray.900"
+              color="white"
+              _hover={{
+                bg: "purple.550",
+              }}
+              type="submit"
+            >
+              Split
+            </Button>
+          </Stack>
+        </form>
+      </FormProvider>
     </Container>
   );
 }

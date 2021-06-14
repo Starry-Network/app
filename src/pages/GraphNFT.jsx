@@ -13,13 +13,10 @@ import {
   FormErrorMessage,
   useToast,
 } from "@chakra-ui/react";
-import { QueryClient, QueryClientProvider } from "react-query";
 import { useForm, FormProvider } from "react-hook-form";
 
 import { useApi } from "../hooks/api";
 import { useTransaction } from "../hooks/transaction";
-
-const queryClient = new QueryClient();
 
 export default function GraphNFT() {
   const { api, accounts, modules, ready } = useApi();
@@ -75,7 +72,6 @@ export default function GraphNFT() {
 
   return (
     <Container py={12}>
-      <QueryClientProvider client={queryClient}>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={4}>
@@ -143,7 +139,6 @@ export default function GraphNFT() {
             </Stack>
           </form>
         </FormProvider>
-      </QueryClientProvider>
     </Container>
   );
 }

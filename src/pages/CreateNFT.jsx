@@ -29,17 +29,13 @@ import { useForm, FormProvider } from "react-hook-form";
 import { stringToHex } from "@polkadot/util";
 import { urlSource } from "ipfs-http-client";
 
-import { QueryClient, QueryClientProvider } from "react-query";
-
 import Upload from "../components/Upload";
 import ipfs from "../utils/ipfs";
 import { useTransaction } from "../hooks/transaction";
 import { useApi } from "../hooks/api";
 
 import Collections from "../components/Collections";
-import WaitingDialog from '../components/WaitingDialog'
-
-const queryClient = new QueryClient();
+import WaitingDialog from "../components/WaitingDialog";
 
 function CreateCollection({ isOpen, onOpen, onClose }) {
   const { api, accounts, modules, ready } = useApi();
@@ -128,8 +124,8 @@ function CreateCollection({ isOpen, onOpen, onClose }) {
 
       const metadataCIDHash = stringToHex(metadataCID);
 
-      const state = queryClient.getQueryState("collections");
-      console.log("state", state);
+      // const state = queryClient.getQueryState("collections");
+      // console.log("state", state);
 
       const result = await newTransaction(
         "collectionModule",
@@ -369,88 +365,84 @@ export default function Create() {
   return (
     <Container py={12}>
       <WaitingDialog dialogIsOpen={dialogIsOpen} closeDialog={closeDialog} />
-      <QueryClientProvider client={queryClient}>
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Stack spacing={4}>
-              <FormControl isInvalid={errors.file}>
-                <FormLabel htmlFor="file">Upload cover</FormLabel>
-                <Upload label="file" />
-                <FormErrorMessage>
-                  {errors.file && "File is required"}
-                </FormErrorMessage>
-              </FormControl>
-              <FormControl isInvalid={errors.name}>
-                <FormLabel htmlFor="name">Name</FormLabel>
-                <Input
-                  name="name"
-                  placeholder="name"
-                  {...register("name", { required: true })}
-                />
-                <FormErrorMessage>
-                  {errors.name && "Name is required"}
-                </FormErrorMessage>
-              </FormControl>
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Stack spacing={4}>
+            <FormControl isInvalid={errors.file}>
+              <FormLabel htmlFor="file">Upload cover</FormLabel>
+              <Upload label="file" />
+              <FormErrorMessage>
+                {errors.file && "File is required"}
+              </FormErrorMessage>
+            </FormControl>
+            <FormControl isInvalid={errors.name}>
+              <FormLabel htmlFor="name">Name</FormLabel>
+              <Input
+                name="name"
+                placeholder="name"
+                {...register("name", { required: true })}
+              />
+              <FormErrorMessage>
+                {errors.name && "Name is required"}
+              </FormErrorMessage>
+            </FormControl>
 
-              <FormControl>
-                <FormLabel htmlFor="description">Description</FormLabel>
-                <Input
-                  name="description"
-                  placeholder="description"
-                  {...register("description")}
-                />
-              </FormControl>
-              <FormControl isInvalid={errors.amount}>
-                <FormLabel>Number of items</FormLabel>
-                <NumberInput defaultValue={1} min={1}>
-                  <NumberInputField
-                    {...register("amount", { required: true })}
-                  />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-                <FormErrorMessage>
-                  {errors.amount && "amount is required"}
-                </FormErrorMessage>
-              </FormControl>
-              <FormControl isInvalid={errors.collection}>
-                <FormLabel htmlFor="collection">Collection</FormLabel>
-                <Collections
-                  accounts={accounts}
-                  {...register("collection", { required: true })}
-                />
-                <FormErrorMessage>
-                  {errors.collection && "Collection is required"}
-                </FormErrorMessage>
-                <FormHelperText
-                  textDecoration="underline"
-                  color={"gray.900"}
-                  onClick={onOpen}
-                  _hover={{
-                    cursor: "pointer",
-                  }}
-                >
-                  Have no collection? Click here to create
-                </FormHelperText>
-              </FormControl>
-              <Button
-                size="md"
-                bg="gray.900"
-                color="white"
+            <FormControl>
+              <FormLabel htmlFor="description">Description</FormLabel>
+              <Input
+                name="description"
+                placeholder="description"
+                {...register("description")}
+              />
+            </FormControl>
+            <FormControl isInvalid={errors.amount}>
+              <FormLabel>Number of items</FormLabel>
+              <NumberInput defaultValue={1} min={1}>
+                <NumberInputField {...register("amount", { required: true })} />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
+              <FormErrorMessage>
+                {errors.amount && "amount is required"}
+              </FormErrorMessage>
+            </FormControl>
+            <FormControl isInvalid={errors.collection}>
+              <FormLabel htmlFor="collection">Collection</FormLabel>
+              <Collections
+                accounts={accounts}
+                {...register("collection", { required: true })}
+              />
+              <FormErrorMessage>
+                {errors.collection && "Collection is required"}
+              </FormErrorMessage>
+              <FormHelperText
+                textDecoration="underline"
+                color={"gray.900"}
+                onClick={onOpen}
                 _hover={{
-                  bg: "purple.550",
+                  cursor: "pointer",
                 }}
-                type="submit"
               >
-                Mint
-              </Button>
-            </Stack>
-          </form>
-        </FormProvider>
-        <CreateCollection isOpen={isOpen} onOpen={onOpen} onClose={onClose} />
-      </QueryClientProvider>
+                Have no collection? Click here to create
+              </FormHelperText>
+            </FormControl>
+            <Button
+              size="md"
+              bg="gray.900"
+              color="white"
+              _hover={{
+                bg: "purple.550",
+              }}
+              type="submit"
+            >
+              Mint
+            </Button>
+          </Stack>
+        </form>
+      </FormProvider>
+      <CreateCollection isOpen={isOpen} onOpen={onOpen} onClose={onClose} />
     </Container>
   );
 }

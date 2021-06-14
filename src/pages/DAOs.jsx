@@ -14,16 +14,10 @@ import {
 } from "@chakra-ui/react";
 import { Link as ReachLink } from "react-router-dom";
 
-import {
-  useQuery,
-  useQueries,
-  QueryClient,
-  QueryClientProvider,
-} from "react-query";
+import { useQuery, useQueries } from "react-query";
 import { request, gql } from "graphql-request";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-const queryClient = new QueryClient();
 
 function useDaos() {
   return useQuery(
@@ -186,9 +180,5 @@ const Cards = () => {
 };
 
 export default function DAOs() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Cards />
-    </QueryClientProvider>
-  );
+  return <Cards />;
 }

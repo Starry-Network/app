@@ -9,6 +9,10 @@ import { ApiProvider } from "./hooks/api";
 
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "react-query";
 
 const colors = {
   purple: {
@@ -24,17 +28,17 @@ const config = {
   useSystemColorMode: false,
 }
 
-
-
 const theme = extendTheme({ colors, config, })
 
+const queryClient = new QueryClient();
 
 ReactDOM.render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
       <ApiProvider>
-        {/* <ColorModeScript initialColorMode={theme.config.initialColorMode} /> */}
-        <App />
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
       </ApiProvider>
     </ChakraProvider>
   </React.StrictMode>,

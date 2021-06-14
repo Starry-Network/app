@@ -40,7 +40,7 @@ import {
 import { useParams } from "react-router-dom";
 import { useHistory } from "react-router-dom";
 
-import { useQuery, QueryClient, QueryClientProvider } from "react-query";
+import { useQuery } from "react-query";
 import { request, gql } from "graphql-request";
 import { useForm, FormProvider } from "react-hook-form";
 
@@ -48,7 +48,6 @@ import { useApi } from "../hooks/api";
 import { useTransaction } from "../hooks/transaction";
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-const queryClient = new QueryClient();
 
 function useOrder(orderId) {
   return useQuery(
@@ -211,14 +210,11 @@ const BuyModal = ({ name, isOpen, onClose, orderId }) => {
 };
 
 const Detail = ({ nftId, orderId = "null" }) => {
-  const {
-    status: NFTMetadataStatus,
-    data: NFTMetadataData,
-  } = useNFTMetadata(nftId);
-  const {
-    status: orderStatus,
-    data: orderData,
-  } = useOrder(orderId === "null" ? undefined : orderId);
+  const { status: NFTMetadataStatus, data: NFTMetadataData } =
+    useNFTMetadata(nftId);
+  const { status: orderStatus, data: orderData } = useOrder(
+    orderId === "null" ? undefined : orderId
+  );
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -376,9 +372,5 @@ const Detail = ({ nftId, orderId = "null" }) => {
 
 export default function NFTDetail() {
   let { nftId, orderId } = useParams();
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Detail nftId={nftId} orderId={orderId} />
-    </QueryClientProvider>
-  );
+  return <Detail nftId={nftId} orderId={orderId} />;
 }

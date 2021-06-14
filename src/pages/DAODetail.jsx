@@ -35,12 +35,7 @@ import {
 } from "@chakra-ui/react";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 
-import {
-  useQuery,
-  useQueries,
-  QueryClient,
-  QueryClientProvider,
-} from "react-query";
+import { useQuery, useQueries } from "react-query";
 
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
@@ -63,7 +58,6 @@ dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
 const endpoint = process.env.REACT_APP_QUERY_ENDPOINT;
-const queryClient = new QueryClient();
 
 function useDaoWithMetadata(daoId) {
   return useQuery(
@@ -880,10 +874,8 @@ export default function DAODetail() {
   let { daoId } = useParams();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Container py={12}>
-        <Detail daoId={daoId} />
-      </Container>
-    </QueryClientProvider>
+    <Container py={12}>
+      <Detail daoId={daoId} />
+    </Container>
   );
 }
